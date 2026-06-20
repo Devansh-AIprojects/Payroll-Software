@@ -396,8 +396,8 @@ a:hover {
   padding-right: 36px;
 }
 .form-select option {
-  background-color: var(--bg-body);
-  color: var(--text-primary);
+  background-color: #0f1117; /* explicit dark color */
+  color: #f1f5f9; /* explicit white color */
 }
 .form-error {
   font-size: var(--text-xs);

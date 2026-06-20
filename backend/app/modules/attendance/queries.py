@@ -141,6 +141,35 @@ ATTENDANCE_DAILY_OVERRIDE = """
     RETURNING id
 """
 
+ATTENDANCE_DAILY_MANUAL_UPSERT = """
+    INSERT INTO attendance_daily (
+        org_id, employee_id, date, shift_id,
+        in_time, out_time, hours_worked, status,
+        ot_hours, undertime_hours,
+        review_status, exception_type,
+        is_manual_override, override_by, override_reason
+    )
+    VALUES (
+        $1, $2, $3, 
+        (SELECT shift_id FROM employees WHERE id = $2 AND org_id = $1), 
+        $4, $5, $6, $7, $8, $9, 'resolved', NULL, TRUE, $10, $11
+    )
+    ON CONFLICT (org_id, employee_id, date)
+    DO UPDATE SET
+        in_time         = EXCLUDED.in_time,
+        out_time        = EXCLUDED.out_time,
+        hours_worked    = EXCLUDED.hours_worked,
+        status          = EXCLUDED.status,
+        ot_hours        = EXCLUDED.ot_hours,
+        undertime_hours = EXCLUDED.undertime_hours,
+        review_status   = EXCLUDED.review_status,
+        exception_type  = EXCLUDED.exception_type,
+        is_manual_override = EXCLUDED.is_manual_override,
+        override_by     = EXCLUDED.override_by,
+        override_reason = EXCLUDED.override_reason
+    RETURNING id
+"""
+
 # ── Exception resolve (clear flag without changing data) ──────────────────────
 
 ATTENDANCE_DAILY_RESOLVE = """

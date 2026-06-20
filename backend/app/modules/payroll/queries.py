@@ -55,6 +55,7 @@ PAYROLL_ENGINE_EMPLOYEES = """
     SELECT e.id, e.org_id, e.employee_code, e.name,
            e.category_id, e.sub_category_id, e.department_id,
            e.shift_id, e.monthly_salary, e.per_day_salary, e.epf_enrolled, e.payment_mode,
+           e.jobber_type,
            sc.salary_type, sc.flat_daily_rate, sc.has_components, sc.has_epf,
            c.pay_type,
            s.standard_hours
@@ -116,9 +117,9 @@ PAYROLL_RECORD_UPSERT = """
         period_id, org_id, employee_id,
         days_present, tier_applied, daily_rate_applied,
         ot_hours, undertime_hours,
-        gross, total_deductions, net_pay, payment_mode
+        gross, jobber_allowance, total_deductions, net_pay, payment_mode
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     ON CONFLICT (period_id, employee_id)
     DO UPDATE SET
         days_present       = EXCLUDED.days_present,
@@ -127,6 +128,7 @@ PAYROLL_RECORD_UPSERT = """
         ot_hours           = EXCLUDED.ot_hours,
         undertime_hours    = EXCLUDED.undertime_hours,
         gross              = EXCLUDED.gross,
+        jobber_allowance   = EXCLUDED.jobber_allowance,
         total_deductions   = EXCLUDED.total_deductions,
         net_pay            = EXCLUDED.net_pay,
         payment_mode       = EXCLUDED.payment_mode
@@ -137,7 +139,7 @@ PAYROLL_RECORD_GET = """
     SELECT pr.id, pr.period_id, pr.org_id, pr.employee_id,
            pr.days_present, pr.tier_applied, pr.daily_rate_applied,
            pr.ot_hours, pr.undertime_hours,
-           pr.gross, pr.total_deductions, pr.net_pay, pr.payment_mode,
+           pr.gross, pr.jobber_allowance, pr.total_deductions, pr.net_pay, pr.payment_mode,
            pr.created_at, pr.updated_at,
            e.name AS employee_name, e.employee_code
     FROM payroll_records pr
@@ -149,7 +151,7 @@ PAYROLL_RECORD_BY_EMPLOYEE = """
     SELECT pr.id, pr.period_id, pr.org_id, pr.employee_id,
            pr.days_present, pr.tier_applied, pr.daily_rate_applied,
            pr.ot_hours, pr.undertime_hours,
-           pr.gross, pr.total_deductions, pr.net_pay, pr.payment_mode,
+           pr.gross, pr.jobber_allowance, pr.total_deductions, pr.net_pay, pr.payment_mode,
            pr.created_at, pr.updated_at,
            e.name AS employee_name, e.employee_code
     FROM payroll_records pr
@@ -162,7 +164,7 @@ PAYROLL_RECORD_LIST = """
     SELECT pr.id, pr.period_id, pr.org_id, pr.employee_id,
            pr.days_present, pr.tier_applied, pr.daily_rate_applied,
            pr.ot_hours, pr.undertime_hours,
-           pr.gross, pr.total_deductions, pr.net_pay, pr.payment_mode,
+           pr.gross, pr.jobber_allowance, pr.total_deductions, pr.net_pay, pr.payment_mode,
            pr.created_at, pr.updated_at,
            e.name AS employee_name, e.employee_code
     FROM payroll_records pr

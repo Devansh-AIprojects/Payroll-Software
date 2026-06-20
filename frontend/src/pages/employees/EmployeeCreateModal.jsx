@@ -24,6 +24,8 @@ const INITIAL_FORM = {
   phone_number: '',
   address: '',
   city: '',
+  room_no: '',
+  jobber_type: 'none',
   device_user_id: '',
 };
 
@@ -141,6 +143,8 @@ export default function EmployeeCreateModal({ onClose, onSuccess }) {
       if (form.phone_number.trim()) payload.phone_number = form.phone_number.trim();
       if (form.address.trim()) payload.address = form.address.trim();
       if (form.city.trim()) payload.city = form.city.trim();
+      if (form.room_no.trim()) payload.room_no = form.room_no.trim();
+      if (form.jobber_type && form.jobber_type !== 'none') payload.jobber_type = form.jobber_type;
 
       if (form.payment_mode === 'bank' || form.payment_mode === 'bank_cash') {
         payload.bank_account = form.bank_account.trim() || null;
@@ -273,6 +277,17 @@ export default function EmployeeCreateModal({ onClose, onSuccess }) {
                 className="form-input"
                 placeholder="City"
                 value={form.city}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="room_no">Room No.</label>
+              <input
+                id="room_no"
+                name="room_no"
+                className="form-input"
+                placeholder="e.g. 12 or L-1"
+                value={form.room_no}
                 onChange={handleChange}
               />
             </div>
@@ -439,6 +454,21 @@ export default function EmployeeCreateModal({ onClose, onSuccess }) {
                 value={form.device_user_id}
                 onChange={handleChange}
               />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="jobber_type">Jobber Allowance</label>
+              <select
+                id="jobber_type"
+                name="jobber_type"
+                className="form-select"
+                value={form.jobber_type}
+                onChange={handleChange}
+              >
+                <option value="none">None</option>
+                <option value="lc">LC Jobber (+₹30/day)</option>
+                <option value="pp">PP Jobber (+₹30/day)</option>
+                <option value="rf">RF Jobber (+₹40/day)</option>
+              </select>
             </div>
           </div>
 

@@ -57,6 +57,19 @@ class ProcessResponse(BaseModel):
 
 # ── Manual override ───────────────────────────────────────────────────────────
 
+class ManualAttendanceCreate(BaseModel):
+    """HR manually inserts or overwrites an attendance_daily record from scratch."""
+    employee_id: str
+    date: date
+    status: Literal['present', 'absent', 'half_day', 'late', 'holiday', 'weekly_off']
+    in_time: Optional[datetime] = None
+    out_time: Optional[datetime] = None
+    hours_worked: Optional[Decimal] = Field(None, ge=0)
+    ot_hours: Optional[Decimal] = Field(None, ge=0)
+    undertime_hours: Optional[Decimal] = Field(None, ge=0)
+    override_reason: str = Field(min_length=1, max_length=500)
+
+
 class DailyOverrideRequest(BaseModel):
     """HR manually corrects an attendance_daily record."""
     status: Optional[Literal[

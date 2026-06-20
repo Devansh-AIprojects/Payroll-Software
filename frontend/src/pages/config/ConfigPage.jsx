@@ -20,7 +20,7 @@ export default function ConfigPage() {
         Categories: '/config/categories',
         Departments: '/config/departments',
         'Salary Components': '/config/salary-components',
-        'Tier Rates': '/config/tier-rates',
+        'Tier Rates': '/config/labour-tier-rates',
       };
       const res = await api.get(endpoints[section]);
       setConfig((c) => ({ ...c, [section]: res.data || [] }));

@@ -21,6 +21,8 @@ export default function EmployeeEditModal({ employee, onClose, onSuccess }) {
     phone_number: employee.phone_number || '',
     address: employee.address || '',
     city: employee.city || '',
+    room_no: employee.room_no || '',
+    jobber_type: employee.jobber_type || 'none',
     device_user_id: employee.device_user_id || '',
     is_active: employee.is_active,
   });
@@ -102,6 +104,8 @@ export default function EmployeeEditModal({ employee, onClose, onSuccess }) {
         phone_number: form.phone_number.trim() || null,
         address: form.address.trim() || null,
         city: form.city.trim() || null,
+        room_no: form.room_no.trim() || null,
+        jobber_type: form.jobber_type && form.jobber_type !== 'none' ? form.jobber_type : 'none',
       };
 
       if (form.epf_enrolled && form.uan_number.trim()) {
@@ -243,6 +247,17 @@ export default function EmployeeEditModal({ employee, onClose, onSuccess }) {
                 onChange={handleChange}
               />
             </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="room_no">Room No.</label>
+              <input
+                id="room_no"
+                name="room_no"
+                className="form-input"
+                placeholder="e.g. 12 or L-1"
+                value={form.room_no}
+                onChange={handleChange}
+              />
+            </div>
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
               <label className="form-label" htmlFor="address">Address</label>
               <textarea
@@ -378,6 +393,21 @@ export default function EmployeeEditModal({ employee, onClose, onSuccess }) {
                 value={form.device_user_id}
                 onChange={handleChange}
               />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="jobber_type">Jobber Allowance</label>
+              <select
+                id="jobber_type"
+                name="jobber_type"
+                className="form-select"
+                value={form.jobber_type}
+                onChange={handleChange}
+              >
+                <option value="none">None</option>
+                <option value="lc">LC Jobber (+₹30/day)</option>
+                <option value="pp">PP Jobber (+₹30/day)</option>
+                <option value="rf">RF Jobber (+₹40/day)</option>
+              </select>
             </div>
           </div>
 

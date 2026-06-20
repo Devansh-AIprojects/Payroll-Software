@@ -35,7 +35,12 @@ async def get_employee(conn: Connection, org_id: str, employee_id: str) -> dict:
     row = await conn.fetchrow(q.EMPLOYEE_GET, employee_id, org_id)
     if not row:
         raise NotFoundError("Employee", employee_id)
-    return dict(row)
+    data = dict(row)
+    data["pan_number"] = _decrypt_field(data.get("pan_number"))
+    data["aadhar_number"] = _decrypt_field(data.get("aadhar_number"))
+    data["bank_account"] = _decrypt_field(data.get("bank_account"))
+    data["bank_ifsc"] = _decrypt_field(data.get("bank_ifsc"))
+    return data
 
 
 async def create_employee(
@@ -51,8 +56,11 @@ async def create_employee(
             org_id, data.employee_code, data.name, data.gender,
             data.category_id, data.sub_category_id, data.department_id, data.shift_id,
             data.monthly_salary, data.per_day_salary, data.epf_enrolled, data.uan_number,
-            data.payment_mode, data.bank_account, data.bank_name, data.bank_ifsc,
-            data.pan_number, data.aadhar_number, data.phone_number, data.address, data.city,
+            data.payment_mode, _encrypt_field(data.bank_account), data.bank_name,
+            _encrypt_field(data.bank_ifsc),
+            _encrypt_field(data.pan_number), _encrypt_field(data.aadhar_number),
+            data.phone_number, data.address, data.city,
+            data.jobber_type, data.room_no,
             data.joining_date, data.device_user_id,
         )
         return await get_employee(conn, org_id, str(row["id"]))
@@ -91,9 +99,12 @@ async def update_employee(
             employee_id, org_id,
             data.name, data.gender, data.department_id, data.shift_id,
             data.monthly_salary, data.per_day_salary, data.epf_enrolled, data.uan_number,
-            data.payment_mode, data.bank_account, data.bank_name, data.bank_ifsc,
-            data.pan_number, data.aadhar_number, data.phone_number, data.address, data.city,
+            data.payment_mode, _encrypt_field(data.bank_account), data.bank_name,
+            _encrypt_field(data.bank_ifsc),
+            _encrypt_field(data.pan_number), _encrypt_field(data.aadhar_number),
+            data.phone_number, data.address, data.city,
             data.is_active, data.device_user_id,
+            data.jobber_type, data.room_no,
         )
     except UniqueViolationError:
         raise ConflictError(
@@ -178,6 +189,32 @@ def _encrypt_template(b64_template: str) -> bytes:
     if not raw:
         raise BadRequestError("template_data decoded to empty bytes")
     return _get_fernet().encrypt(raw)
+
+
+def _encrypt_field(value: str | None) -> str | None:
+    """
+    Encrypt a sensitive text field (PAN, Aadhar) before it touches the DB.
+    None passes through untouched — lets EMPLOYEE_UPDATE's COALESCE("don't
+    change this field") keep working exactly as before.
+    """
+    if value is None:
+        return None
+    return _get_fernet().encrypt(value.encode()).decode()
+
+
+def _decrypt_field(value: str | None) -> str | None:
+    """
+    Decrypt a sensitive text field read back from the DB.
+    Returns None on missing or undecryptable input (e.g. wrong key,
+    corrupted value) rather than raising — a bad PAN/Aadhar value should
+    never take down the whole employee record in a list/detail view.
+    """
+    if value is None:
+        return None
+    try:
+        return _get_fernet().decrypt(value.encode()).decode()
+    except (InvalidToken, ValueError):
+        return None
 
 
 # ── Fingerprint service ───────────────────────────────────────────────────────

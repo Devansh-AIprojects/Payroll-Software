@@ -8,7 +8,7 @@ from asyncpg import Connection
 from app.core.exceptions import NotFoundError, BadRequestError
 from app.modules.attendance import queries as q
 from app.modules.attendance.schemas import (
-    ProcessRequest, DailyOverrideRequest, LeaveCreate,
+    ProcessRequest, DailyOverrideRequest, LeaveCreate, ManualAttendanceCreate
 )
 from app.modules.devices import queries as dq
 
@@ -438,6 +438,40 @@ async def override_daily(
         raise NotFoundError("Attendance daily record", daily_id)
 
     result = await conn.fetchrow(q.ATTENDANCE_DAILY_GET, daily_id, org_id)
+    return dict(result)
+
+
+async def create_manual_attendance(
+    conn: Connection,
+    org_id: str,
+    data: ManualAttendanceCreate,
+    user_id: str,
+) -> dict:
+    """HR manually inserts or overwrites an attendance_daily record from scratch."""
+    # Ensure employee exists
+    emp = await conn.fetchrow(
+        "SELECT id FROM employees WHERE id = $1 AND org_id = $2",
+        data.employee_id, org_id,
+    )
+    if not emp:
+        raise NotFoundError("Employee", data.employee_id)
+
+    row = await conn.fetchrow(
+        q.ATTENDANCE_DAILY_MANUAL_UPSERT,
+        org_id,
+        data.employee_id,
+        data.date,
+        data.in_time,
+        data.out_time,
+        float(data.hours_worked) if data.hours_worked is not None else 0.0,
+        data.status,
+        float(data.ot_hours) if data.ot_hours is not None else 0.0,
+        float(data.undertime_hours) if data.undertime_hours is not None else 0.0,
+        user_id,
+        data.override_reason,
+    )
+    
+    result = await conn.fetchrow(q.ATTENDANCE_DAILY_GET, row["id"], org_id)
     return dict(result)
 
 

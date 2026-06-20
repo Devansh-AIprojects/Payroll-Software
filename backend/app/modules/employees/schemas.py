@@ -25,6 +25,8 @@ class EmployeeCreate(BaseModel):
     phone_number: Optional[str] = Field(None, max_length=20)
     address: Optional[str] = None
     city: Optional[str] = Field(None, max_length=100)
+    jobber_type: Literal["none", "lc", "pp", "rf"] = "none"
+    room_no: Optional[str] = Field(None, max_length=50)
     joining_date: date
     device_user_id: Optional[int] = Field(
         None, ge=1, le=32767,
@@ -61,6 +63,8 @@ class EmployeeUpdate(BaseModel):
     phone_number: Optional[str] = Field(None, max_length=20)
     address: Optional[str] = None
     city: Optional[str] = Field(None, max_length=100)
+    jobber_type: Optional[Literal["none", "lc", "pp", "rf"]] = None
+    room_no: Optional[str] = Field(None, max_length=50)
     is_active: Optional[bool] = None
     device_user_id: Optional[int] = Field(
         None, ge=1, le=32767,
@@ -95,6 +99,8 @@ class EmployeeResponse(BaseModel):
     phone_number: Optional[str]
     address: Optional[str]
     city: Optional[str]
+    jobber_type: str
+    room_no: Optional[str]
     joining_date: date
     device_user_id: Optional[int]
     is_active: bool
@@ -114,6 +120,8 @@ class EmployeeListItem(BaseModel):
     payment_mode: str
     epf_enrolled: bool
     device_user_id: Optional[int]
+    jobber_type: str
+    room_no: Optional[str]
     is_active: bool
     joining_date: date
 

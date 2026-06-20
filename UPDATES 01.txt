@@ -1,0 +1,11 @@
+LC/PP JOBBER  +30 /day
+RF  JOBBER    +40 /day
+apart from our written categories, add these 3 , these are special people who are paid more as written. If their per day is mentioned as lets say 500, 
+lc/pp jobber is paid 30 extra on that per day and rf jobber is paid 40 extra per day.
+
+Record leave-  select employee is empty, there nothing to choose from.
+
+add room no of employee section too, and while choosing select employee in leave, show room no next to employee name, autoconfigure that.
+
+tier rate section is empty.
+Also till actually fingerprint device is added (its gone for repairing). give me also a manually section to mark presenty and calculate salary on our day logic. And once end of month is done, how is actually that configured into the da, epf sheet?

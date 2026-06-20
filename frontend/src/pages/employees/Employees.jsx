@@ -50,6 +50,10 @@ export default function Employees() {
   const columns = [
     { key: 'employee_code', label: 'Code' },
     { key: 'name', label: 'Name' },
+    { key: 'phone_number', label: 'Phone', render: (v) => v || '—' },
+    { key: 'city', label: 'City', render: (v) => v || '—' },
+    { key: 'pan_number', label: 'PAN', render: (v) => v ? v.toUpperCase() : '—' },
+    { key: 'aadhar_number', label: 'Aadhar', render: (v) => v || '—' },
     {
       key: 'gender',
       label: 'Gender',

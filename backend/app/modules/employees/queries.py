@@ -6,6 +6,7 @@ EMPLOYEE_LIST = """
         e.department_id,   d.name  AS department_name,
         e.shift_id,        s.name  AS shift_name,
         e.payment_mode, e.epf_enrolled, e.device_user_id,
+        e.jobber_type, e.room_no,
         e.is_active, e.joining_date
     FROM employees e
     JOIN categories     c  ON c.id  = e.category_id
@@ -37,6 +38,7 @@ EMPLOYEE_GET = """
         e.monthly_salary, e.per_day_salary, e.epf_enrolled, e.uan_number,
         e.payment_mode, e.bank_account, e.bank_name, e.bank_ifsc,
         e.pan_number, e.aadhar_number, e.phone_number, e.address, e.city,
+        e.jobber_type, e.room_no,
         e.joining_date, e.device_user_id, e.is_active,
         e.created_at, e.updated_at
     FROM employees e
@@ -55,9 +57,10 @@ EMPLOYEE_INSERT = """
         monthly_salary, per_day_salary, epf_enrolled, uan_number,
         payment_mode, bank_account, bank_name, bank_ifsc,
         pan_number, aadhar_number, phone_number, address, city,
+        jobber_type, room_no,
         joining_date, device_user_id
     )
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
     RETURNING id
 """
 
@@ -82,7 +85,9 @@ EMPLOYEE_UPDATE = """
         address        = COALESCE($18, address),
         city           = COALESCE($19, city),
         is_active      = COALESCE($20, is_active),
-        device_user_id = COALESCE($21, device_user_id)
+        device_user_id = COALESCE($21, device_user_id),
+        jobber_type    = COALESCE($22, jobber_type),
+        room_no        = COALESCE($23, room_no)
     WHERE id = $1 AND org_id = $2
     RETURNING id
 """

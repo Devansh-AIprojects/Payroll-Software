@@ -11,7 +11,7 @@ from app.modules.attendance import service
 from app.modules.attendance.schemas import (
     AttendanceLogResponse, AttendanceDailyResponse,
     ProcessRequest, ProcessResponse,
-    DailyOverrideRequest,
+    DailyOverrideRequest, ManualAttendanceCreate,
     ExceptionSummary,
     LeaveCreate, LeaveResponse,
 )
@@ -156,6 +156,26 @@ async def process_attendance(
 
 
 # ── Phase 4: Manual override ─────────────────────────────────────────────────
+
+@attendance_router.post(
+    "/manual",
+    response_model=APIResponse[AttendanceDailyResponse],
+    status_code=201,
+)
+async def create_manual_attendance(
+    body: ManualAttendanceCreate,
+    user: AuthUser = require_hr,
+):
+    """
+    HR manually inserts or overwrites an attendance_daily record from scratch.
+    This bypasses the engine and marks the record as is_manual_override=TRUE.
+    """
+    async with get_connection() as conn:
+        data = await service.create_manual_attendance(
+            conn, user.org_id, body, user.user_id,
+        )
+    return APIResponse(data=data, message="Manual attendance recorded")
+
 
 @attendance_router.patch(
     "/daily/{daily_id}",

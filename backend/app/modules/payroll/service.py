@@ -210,6 +210,17 @@ async def _process_single_employee(
     ot_hours = Decimal(str(att_row["ot_hours"]))
     undertime_hours = Decimal(str(att_row["undertime_hours"]))
 
+    # Jobber allowance
+    jobber_allowance_per_day = Decimal("0")
+    if emp.get("jobber_type") == "lc":
+        jobber_allowance_per_day = Decimal("30")
+    elif emp.get("jobber_type") == "pp":
+        jobber_allowance_per_day = Decimal("30")
+    elif emp.get("jobber_type") == "rf":
+        jobber_allowance_per_day = Decimal("40")
+        
+    total_jobber_allowance = jobber_allowance_per_day * days_present
+
     # Calculate gross based on salary path
     tier_applied = None
     daily_rate_applied = None
@@ -224,7 +235,7 @@ async def _process_single_employee(
             raise BadRequestError(
                 f"No tier rate found for department with {days_int} days present"
             )
-        daily_rate = Decimal(str(tier_row["daily_rate"]))
+        daily_rate = Decimal(str(tier_row["daily_rate"])) + jobber_allowance_per_day
         tier_applied = tier_row["tier"]
         daily_rate_applied = float(daily_rate)
         gross = calc_path_a_tier(days_present, daily_rate)
@@ -234,7 +245,7 @@ async def _process_single_employee(
 
     elif salary_type == "daily_flat":
         # Path B — Trainee
-        flat_rate = Decimal(str(emp["flat_daily_rate"]))
+        flat_rate = Decimal(str(emp["flat_daily_rate"])) + jobber_allowance_per_day
         daily_rate_applied = float(flat_rate)
         gross = calc_path_b_daily_flat(days_present, flat_rate)
         ot_hours = Decimal("0")
@@ -255,6 +266,8 @@ async def _process_single_employee(
                     "Please set a per-day salary before running payroll."
                 )
             per_day_salary = Decimal(str(raw_monthly)) / MONTHLY_DIVISOR
+            
+        per_day_salary += jobber_allowance_per_day
         standard_hours = Decimal(str(emp["standard_hours"]))
         gross = calc_path_c_monthly(
             per_day_salary, days_present, ot_hours, undertime_hours, standard_hours,
@@ -279,7 +292,7 @@ async def _process_single_employee(
         period_id, org_id, emp_id,
         float(days_present), tier_applied, daily_rate_applied,
         float(ot_hours), float(undertime_hours),
-        float(gross), float(component_deductions),
+        float(gross), float(total_jobber_allowance), float(component_deductions),
         float(gross - component_deductions),  # tentative net_pay
         payment_mode,
     )

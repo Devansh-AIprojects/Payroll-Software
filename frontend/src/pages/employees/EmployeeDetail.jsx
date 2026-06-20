@@ -5,10 +5,15 @@ import { Spinner } from '../../components/Loader';
 import EmployeeEditModal from './EmployeeEditModal';
 
 const FINGER_NAMES = {
-  1: 'Right Thumb', 2: 'Right Index', 3: 'Right Middle',
-  4: 'Right Ring', 5: 'Right Little',
-  6: 'Left Thumb', 7: 'Left Index', 8: 'Left Middle',
-  9: 'Left Ring', 10: 'Left Little',
+  0: 'Left Pinky', 1: 'Left Ring', 2: 'Left Middle', 3: 'Left Index', 4: 'Left Thumb',
+  5: 'Right Thumb', 6: 'Right Index', 7: 'Right Middle', 8: 'Right Ring', 9: 'Right Pinky',
+};
+
+const JOBBER_LABELS = {
+  none: 'None',
+  lc: 'LC Jobber (+₹30/day)',
+  pp: 'PP Jobber (+₹30/day)',
+  rf: 'RF Jobber (+₹40/day)'
 };
 
 export default function EmployeeDetail() {
@@ -129,6 +134,7 @@ export default function EmployeeDetail() {
                 <Row label="Phone" value={e.phone_number || '—'} />
                 <Row label="Address" value={e.address || '—'} />
                 <Row label="City" value={e.city || '—'} />
+                <Row label="Room No." value={e.room_no || '—'} />
                 <Row label="PAN" value={e.pan_number ? e.pan_number.toUpperCase() : '—'} />
                 <Row label="Aadhar" value={e.aadhar_number || '—'} />
               </div>
@@ -193,6 +199,10 @@ export default function EmployeeDetail() {
                     '—'
                   )
                 }
+              />
+              <Row
+                label="Jobber Allowance"
+                value={e.jobber_type && e.jobber_type !== 'none' ? JOBBER_LABELS[e.jobber_type] || 'None' : 'None'}
               />
               <Row
                 label="Payment Mode"

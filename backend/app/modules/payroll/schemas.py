@@ -78,6 +78,7 @@ class PayrollRecordResponse(BaseModel):
     ot_hours: float
     undertime_hours: float
     gross: float
+    jobber_allowance: float
     total_deductions: float
     net_pay: float
     payment_mode: str
