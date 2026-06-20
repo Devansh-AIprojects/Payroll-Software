@@ -132,7 +132,6 @@ export default function LeaveManagement() {
           <h1 className="page-title">Leave Management</h1>
           <p className="page-subtitle">View and record employee leave applications</p>
         </div>
-        </div>
         <div className="flex gap-2">
           <button className="btn btn-secondary" onClick={() => setShowManual(true)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
