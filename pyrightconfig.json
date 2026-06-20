@@ -1,0 +1,18 @@
+{
+  "pythonVersion": "3.12",
+  "pythonPlatform": "Windows",
+  "venvPath": "c:/Users/agraw/Payroll Software/backend",
+  "venv": "venv",
+  "extraPaths": [
+    "c:/Users/agraw/Payroll Software/backend"
+  ],
+  "include": [
+    "backend"
+  ],
+  "exclude": [
+    "backend/venv",
+    "**/__pycache__"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingModuleSource": "none"
+}

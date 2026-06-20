@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Production, Deployment &amp; Post-Deployment Guide — STC Cotyarn Payroll System</title>
+<style>
+  :root {
+    --bg: #000000;
+    --bg-card: #0d0d0d;
+    --border: #262626;
+    --text: #d8d8d8;
+    --text-dim: #8a8a8a;
+    --heading: #ffffff;
+    --accent: #f59e0b;
+    --accent-dim: #b97f1d;
+    --danger: #f43f5e;
+    --success: #14b8a6;
+    --warning: #fb923c;
+    --code-bg: #111111;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Arial, sans-serif;
+    line-height: 1.65;
+    margin: 0;
+    padding: 0;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 24px 120px;
+  }
+
+  header.title-block {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+  }
+
+  header.title-block h1 {
+    color: var(--heading);
+    font-size: 1.9rem;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+
+  header.title-block .subtitle {
+    color: var(--accent);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  header.title-block p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 640px;
+  }
+
+  h2 {
+    color: var(--heading);
+    font-size: 1.35rem;
+    margin-top: 56px;
+    margin-bottom: 4px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h2 .num {
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 8px;
+  }
+
+  h3 {
+    color: var(--heading);
+    font-size: 1.05rem;
+    margin-top: 28px;
+    margin-bottom: 8px;
+  }
+
+  h3 .num {
+    color: var(--accent-dim);
+    margin-right: 6px;
+  }
+
+  p { margin: 10px 0; }
+
+  ul, ol { margin: 10px 0; padding-left: 24px; }
+  li { margin: 6px 0; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 0.85em;
+    color: #ffd699;
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 0.82rem;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #c9c9c9;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+
+  .card.danger { border-left: 3px solid var(--danger); }
+  .card.warn { border-left: 3px solid var(--warning); }
+  .card.ok { border-left: 3px solid var(--success); }
+  .card.info { border-left: 3px solid var(--accent); }
+
+  .card .label {
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+  }
+  .card.danger .label { color: var(--danger); }
+  .card.warn .label { color: var(--warning); }
+  .card.ok .label { color: var(--success); }
+  .card.info .label { color: var(--accent); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #111111;
+    color: var(--heading);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  tr:nth-child(even) td { background: #0a0a0a; }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li {
+    padding-left: 28px;
+    position: relative;
+    margin: 8px 0;
+  }
+  .checklist li::before {
+    content: "☐";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 1rem;
+  }
+
+  nav.toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+  nav.toc .label {
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  nav.toc ol {
+    columns: 2;
+    -webkit-columns: 2;
+    column-gap: 32px;
+    padding-left: 20px;
+    font-size: 0.88rem;
+  }
+  nav.toc li { margin: 5px 0; break-inside: avoid; }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(245,158,11,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(245,158,11,0.4);
+  }
+
+  hr.section-rule {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  @media (max-width: 640px) {
+    nav.toc ol { columns: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="title-block">
+    <div class="subtitle">Internal Reference — STC Cotyarn Payroll System</div>
+    <h1>Production, Deployment &amp; Post-Deployment Guide</h1>
+    <p>
+      A working reference for taking the payroll system live and keeping it healthy afterward.
+      This is your first project being run for a real firm rather than yourself — the technical bar barely changes,
+      but the operational bar (backups, access control, incident handling, compliance) goes up a lot, because
+      real wages and real people's data now depend on this running correctly every month. This document is meant
+      to be read once fully, then kept around as a checklist you come back to.
+    </p>
+  </header>
+
+  <nav class="toc">
+    <div class="label">Contents</div>
+    <ol>
+      <li><a href="#mindset">The Mindset Shift</a></li>
+      <li><a href="#prelaunch">Pre-Launch Checklist</a></li>
+      <li><a href="#environments">Environment Strategy</a></li>
+      <li><a href="#secrets">Secrets &amp; Configuration</a></li>
+      <li><a href="#security">Security Hardening</a></li>
+      <li><a href="#database">Database Management</a></li>
+      <li><a href="#cicd">Deployment Process</a></li>
+      <li><a href="#testing">Testing Strategy</a></li>
+      <li><a href="#monitoring">Monitoring, Logging &amp; Alerting</a></li>
+      <li><a href="#incident">Incident Response</a></li>
+      <li><a href="#dr">Backup &amp; Disaster Recovery</a></li>
+      <li><a href="#docs">Documentation &amp; Handoff</a></li>
+      <li><a href="#compliance">India Compliance — DPDP Act</a></li>
+      <li><a href="#versioning">Versioning &amp; Rollback</a></li>
+      <li><a href="#scaling">Performance &amp; Scaling</a></li>
+      <li><a href="#postlaunch">First 90 Days</a></li>
+      <li><a href="#checklists">Quick-Reference Checklists</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1 -->
+  <h2 id="mindset"><span class="num">01</span>The Mindset Shift</h2>
+  <p>
+    A personal project fails quietly — you notice, you fix it, nobody else is affected. A production payroll
+    system fails loudly: someone doesn't get paid correctly, or a backup turns out not to exist when you needed
+    it, or fingerprint data leaks and now there's a legal problem, not just a bug. Three things change:
+  </p>
+  <ul>
+    <li><strong>You are the entire ops team.</strong> No SRE on call, no second engineer to sanity-check a risky deploy. That means you need lightweight versions of the safety nets a bigger team would have — checklists, backups, staging environments — because there's no one else to catch your mistake.</li>
+    <li><strong>The data is sensitive by default.</strong> Bank account numbers, fingerprint templates, salary figures. This isn't a to-do app. Treat every table with PII as something that needs an access-control story, not just a CRUD endpoint.</li>
+    <li><strong>Mistakes have a deadline.</strong> Payroll runs on a schedule. "I'll fix it next week" doesn't work if next week is payday and the system is down or the numbers are wrong.</li>
+  </ul>
+  <div class="card info">
+    <div class="label">Core principle</div>
+    None of this requires enterprise tooling or a big budget. It requires consistent small habits — automated backups,
+    a staging environment, a written checklist before every deploy — done every single time, not just when you remember.
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- 2 -->
+  <h2 id="prelaunch"><span class="num">02</span>Pre-Launch Checklist</h2>
+  <p>Before the first real payroll cycle runs on this system, confirm every item below. Treat this as a gate, not a suggestion.</p>
+  <ul class="checklist">
+    <li>Production, staging, and local environments are clearly separated — different databases, different <code>.env</code> files, never shared credentials.</li>
+    <li>No secrets (DB passwords, JWT signing key, Fernet encryption key) exist in source code or git history. Run a secret-scan before the first public commit if the repo will ever go public or be shared.</li>
+    <li>HTTPS is enforced everywhere, including the <code>/iclock</code> ADMS endpoint and the login route. No plaintext HTTP in production.</li>
+    <li>Row Level Security (or equivalent access control) is configured on every table containing employee, payroll, or biometric data — not left in the default "fully open" state.</li>
+    <li>Database backups are enabled <em>and you have personally restored one</em> into a scratch database to confirm the backup is real and usable.</li>
+    <li>Error tracking (Sentry) is wired up and actually sends you a notification — test this by triggering a deliberate error.</li>
+    <li>Every endpoint that mutates money or attendance data validates input server-side, not just in the React form.</li>
+    <li>A rollback plan for the first deploy is written down before you deploy, not improvised after something breaks.</li>
+    <li>You've run at least one full payroll cycle in parallel with the existing Excel process and the numbers match exactly.</li>
+    <li>HR staff who will actually use the system have clicked through it once, before go-live, not after.</li>
+  </ul>
+
+  <hr class="section-rule">
+
+  <!-- 3 -->
+  <h2 id="environments"><span class="num">03</span>Environment Strategy</h2>
+  <p>
+    Three environments is the minimum for any system handling real money: <strong>local</strong> (your laptop),
+    <strong>staging</strong> (a clone of production config, fake or anonymized data), and <strong>production</strong>
+    (real data, real consequences). The rule that matters most: <strong>never point a local or staging frontend at the
+    production database</strong>, even "just to check something quickly." That single habit prevents most of the worst
+    accidental-deletion or accidental-edit incidents.
+  </p>
+  <h3><span class="num">3.1</span>Why staging matters even for a one-person team</h3>
+  <p>
+    Staging isn't about scale — it's about having somewhere to break things safely. Before running a new migration
+    or deploying a payroll-engine change, run it against staging first with a copy of realistic (but de-identified)
+    data. If something is going to go wrong, you want it to go wrong on a table nobody depends on.
+  </p>
+  <div class="card warn">
+    <div class="label">Common mistake</div>
+    Testing "carefully" directly in production because spinning up staging feels like overhead. It isn't — a free-tier
+    Postgres instance and a second Railway/Vercel deployment target cost very little next to the cost of a payroll
+    mistake reaching real employees.
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- 4 -->
+  <h2 id="secrets"><span class="num">04</span>Secrets &amp; Configuration Management</h2>
+  <ul>
+    <li><code>.env</code> files are in <code>.gitignore</code> from day one — confirm this, don't assume it.</li>
+    <li>Secrets live in the hosting platform's environment variable store (Railway, Supabase project settings, etc.), never hardcoded, never in a Slack message or a comment.</li>
+    <li>The JWT signing secret, the Fernet key used to encrypt fingerprint templates, and the database password are three separate secrets — rotating one should never require touching the others.</li>
+    <li>If a secret is ever exposed (committed by accident, pasted somewhere it shouldn't be), rotate it immediately rather than hoping nobody noticed. Rotation is cheap; a breach investigation is not.</li>
+    <li>Use a least-privilege database role for the running application. The app's day-to-day DB user should not have the ability to drop tables or alter schema — reserve that for a separate migration-runner credential you use manually.</li>
+  </ul>
+
+  <hr class="section-rule">
+
+  <!-- 5 -->
+  <h2 id="security"><span class="num">05</span>Security Hardening</h2>
+  <p>
+    The current industry reference point is the <strong>OWASP Top 10 (2025 edition)</strong>. It's worth reading the
+    real list once, but here's how the top categories map onto a system like this one:
+  </p>
+
+  <table>
+    <tr><th>OWASP Category</th><th>What it means for this system</th></tr>
+    <tr><td><strong>Broken Access Control</strong> (#1)</td><td>Every query must be scoped to <code>org_id</code>. A bug that lets one org's HR user read another org's employee data is the single most damaging class of bug in a multi-tenant system. Test this explicitly, not just by inspection.</td></tr>
+    <tr><td><strong>Security Misconfiguration</strong> (#2)</td><td>Debug mode off in production. CORS locked to your actual frontend origin, not <code>*</code>. RLS enabled with real policies, not left disabled "for now."</td></tr>
+    <tr><td><strong>Software Supply Chain Failures</strong> (#3, new)</td><td>Know what packages you depend on. Run <code>pip list --outdated</code> / <code>npm outdated</code> periodically. Don't add a dependency for a one-line utility you could write yourself.</td></tr>
+    <tr><td><strong>Cryptographic Failures</strong> (#4)</td><td>Passwords already go through bcrypt — good. Fingerprint templates are already Fernet-encrypted at rest — good, keep that key out of source control. Consider whether bank account numbers also deserve column-level encryption, not just DB access control.</td></tr>
+    <tr><td><strong>Injection</strong> (#5)</td><td>You're already using parameterized queries via asyncpg (<code>$1, $2...</code>) — never string-format SQL, ever, even for "just an internal admin script."</td></tr>
+    <tr><td><strong>Insecure Design</strong> (#6)</td><td>The validation gate before payroll runs (blocking on attendance exceptions) is exactly this principle applied correctly — fail closed, not open.</td></tr>
+    <tr><td><strong>Authentication Failures</strong></td><td>JWT expiry should be short enough that a stolen token isn't useful for long. Consider basic lockout/backoff after repeated failed logins on <code>/auth/login</code>.</td></tr>
+    <tr><td><strong>Security Logging &amp; Alerting Failures</strong></td><td>Log who ran payroll, who edited a deduction, who overrode an attendance record, and when. These are the logs you'll need if a number is ever disputed.</td></tr>
+    <tr><td><strong>Mishandling of Exceptional Conditions</strong> (new)</td><td>If the validation gate check itself throws an error, the safe default is to block the payroll run, not silently let it through.</td></tr>
+  </table>
+
+  <h3><span class="num">5.1</span>Specific to the ADMS / fingerprint device endpoint</h3>
+  <p>
+    <code>/iclock/cdata</code> is intentionally unauthenticated (the device can't do JWT), which means it's a public
+    endpoint by design. Mitigate this by validating the device serial number strictly against the <code>devices</code>
+    table, rate-limiting that endpoint, and — if the mill's network setup allows it — restricting it to the device's
+    known IP or routing it through a VPN rather than leaving it open to the whole internet.
+  </p>
+
+  <hr class="section-rule">
+
+  <!-- 6 -->
+  <h2 id="database"><span class="num">06</span>Database Management</h2>
+  <h3><span class="num">6.1</span>Migrations</h3>
+  <ul>
+    <li>Never edit a migration that has already been applied to production. Write a new one. Migration history is an append-only log.</li>
+    <li>Keep migrations small and reversible where possible. A migration that adds a nullable column is low-risk; one that renames or drops a column in active use is high-risk and should be done in two steps across two releases (add new, backfill, switch reads, then drop old).</li>
+    <li>Run every migration against staging first, on a realistic data copy, before running it against production.</li>
+  </ul>
+  <h3><span class="num">6.2</span>Backups — the 3-2-1 rule</h3>
+  <p>
+    Keep <strong>3</strong> copies of critical data, on <strong>2</strong> different storage types, with <strong>1</strong>
+    copy stored somewhere other than your primary cloud provider. In practice for this project:
+  </p>
+  <ol>
+    <li>Automated daily backups from your managed Postgres provider (confirm this is actually turned on — it's often opt-in).</li>
+    <li>A periodic manual export (<code>pg_dump</code>) of at least <code>employees</code>, <code>payroll_records</code>, and <code>payroll_periods</code>, stored somewhere separate — a different cloud account, even just a local encrypted drive.</li>
+    <li>If your plan supports it, enable Point-in-Time Recovery (PITR) — this is what saves you when someone fat-fingers an update rather than the whole database disappearing.</li>
+  </ol>
+  <div class="card danger">
+    <div class="label">Non-negotiable</div>
+    A backup you have never restored is not a backup — it's an assumption. Restore one into a throwaway database
+    before you trust it. Do this once before go-live, and re-test every few months.
+  </div>
+  <h3><span class="num">6.3</span>Connection handling &amp; indexing</h3>
+  <ul>
+    <li>Use connection pooling (PgBouncer, or whatever your managed provider includes) so a burst of requests doesn't exhaust available DB connections.</li>
+    <li>Make sure foreign keys and frequently-filtered columns (<code>org_id</code>, <code>employee_id</code>, <code>period_id</code>, <code>date</code> on <code>attendance_daily</code>) are indexed — at low employee counts this won't matter yet, but it costs nothing to do correctly now.</li>
+  </ul>
+
+  <hr class="section-rule">
+
+  <!-- 7 -->
+  <h2 id="cicd"><span class="num">07</span>Deployment Process</h2>
+  <p>
+    Even a minimal pipeline beats manual, ad-hoc deploys: <strong>lint → test → build → deploy</strong>, automated
+    on every push to your main branch, even if it's just a GitHub Action. The goal isn't sophistication, it's
+    consistency — the same steps run the same way every time, so a deploy is never "did I remember to run the tests this time?"
+  </p>
+  <ul>
+    <li>Tag every production release (git tags, e.g. <code>v1.4.0</code>) so you always know exactly what code is live.</li>
+    <li>Schedule risky deploys away from payday and away from end-of-month, when payroll is actively being processed.</li>
+    <li>Database migrations should stay backward-compatible with the previous app version for at least one release — add new columns before removing old ones, so a mid-deploy moment never has app code expecting a column that doesn't exist yet.</li>
+    <li>After every deploy, run a manual smoke test: log in, load the dashboard, hit one read endpoint that touches the DB. Thirty seconds of checking beats finding out from a user that something's broken.</li>
+  </ul>
+
+  <hr class="section-rule">
+
+  <!-- 8 -->
+  <h2 id="testing"><span class="num">08</span>Testing Strategy</h2>
+  <ul>
+    <li><strong>Unit tests</strong> for the payroll engine's three calculation paths (tier-based Labour, flat-rate Trainee, monthly Maintenance/Staff with OT/undertime) deserve the most attention of anything in this codebase — a bug here directly means a wrong paycheck.</li>
+    <li><strong>Integration tests</strong> covering the full chain: punch logged → daily attendance processed → payroll run → payslip generated. This is where bugs hide that unit tests on individual functions won't catch.</li>
+    <li><strong>UAT (User Acceptance Testing):</strong> before full cutover, have actual HR staff click through real workflows. They will find issues a developer testing their own code won't notice.</li>
+    <li><strong>Parallel run:</strong> for at least one full payroll cycle, run the new system alongside the existing Excel process and compare every employee's net pay line by line. Don't fully retire Excel until the numbers match for a complete cycle.</li>
+  </ul>
+
+  <hr class="section-rule">
+
+  <!-- 9 -->
+  <h2 id="monitoring"><span class="num">09</span>Monitoring, Logging &amp; Alerting</h2>
+  <ul>
+    <li><strong>Structured logs</strong> — include a request ID, <code>org_id</code>, and timestamp on every log line so you can trace one user's action through the system.</li>
+    <li><strong>Error tracking</strong> — Sentry is already in your stack; confirm it actually notifies you (email or otherwise) rather than just collecting errors nobody looks at.</li>
+    <li><strong>Uptime monitoring</strong> — a free external service (UptimeRobot, Better Uptime, etc.) pinging a <code>/health</code> endpoint every few minutes, so you find out the backend is down before HR does.</li>
+    <li><strong>Business-level alerts, not just technical ones</strong> — for example, flag it if a payroll run produces ₹0 net pay for an unusual share of employees, or if attendance exceptions spike on a given day. These signal a logic bug, not a server crash, and technical monitoring alone won't catch them.</li>
+  </ul>
+
+  <hr class="section-rule">
+
+  <!-- 10 -->
+  <h2 id="incident"><span class="num">10</span>Incident Response</h2>
+  <p>
+    Write a one-page plan before you need it, not during an outage. At minimum, answer:
+  </p>
+  <ul>
+    <li>If the system is down on payday, what's the fallback? (Likely: fall back to the Excel process for that cycle.)</li>
+    <li>Who needs to be told, and how, if employee data is exposed or the system is unreachable for an extended period?</li>
+    <li>Where do backups live, and do you remember the restore steps without having to relearn them under pressure?</li>
+  </ul>
+  <p>
+    After any real incident, write a short note — what happened, what you changed as a result. Five minutes now
+    saves you from repeating the same mistake in six months when you've forgotten the details.
+  </p>
+
+  <hr class="section-rule">
+
+  <!-- 11 -->
+  <h2 id="dr"><span class="num">11</span>Backup &amp; Disaster Recovery</h2>
+  <p>
+    Two numbers worth defining, even informally:
+  </p>
+  <ul>
+    <li><strong>RTO (Recovery Time Objective)</strong> — how long can the system realistically be down before it's a real problem? For a mill running payroll monthly, a few hours of downtime on a random Tuesday is very different from a few hours on disbursement day.</li>
+    <li><strong>RPO (Recovery Point Objective)</strong> — how much data can you afford to lose if something goes wrong? For finalized <code>payroll_records</code>, this should be close to zero — once a payroll period is approved, that data needs to survive almost anything.</li>
+  </ul>
+  <p>
+    Beyond your cloud provider's backups, keep a periodic offline export of the most critical tables as a true
+    "if the cloud account itself is compromised or deleted" copy.
+  </p>
+
+  <hr class="section-rule">
+
+  <!-- 12 -->
+  <h2 id="docs"><span class="num">12</span>Documentation &amp; Handoff</h2>
+  <p>
+    You're already doing the right thing instinctively by keeping a living handoff document as the project moves
+    between tools and sessions — keep that habit permanently, not just during active development. At minimum, document:
+  </p>
+  <ul>
+    <li>How to run migrations, and how to roll one back if needed.</li>
+    <li>How to rotate each secret (JWT key, Fernet key, DB password) without breaking the running app.</li>
+    <li>How to restore from backup, written step by step, tested at least once.</li>
+    <li>Who has login access to what — the Supabase dashboard, the hosting platform, the production database directly.</li>
+  </ul>
+  <div class="card info">
+    <div class="label">Why this matters more here than usual</div>
+    Right now you're the single point of failure for the firm's payroll system. If you're unavailable for a week,
+    can someone else — even a future, more experienced version of you — figure out how to run payroll on time
+    using only the documentation that exists?
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- 13 -->
+  <h2 id="compliance"><span class="num">13</span>India Compliance — DPDP Act, 2023</h2>
+  <p>
+    India's Digital Personal Data Protection Act applies to digital personal data generally, and explicitly
+    covers the categories this system stores: employee identification details, biometric data used for attendance,
+    and financial information like bank account numbers and salary figures.
+  </p>
+  <ul>
+    <li><strong>Legitimate use for employment:</strong> processing employee data for recruitment, attendance, payroll, and statutory compliance is generally permitted without separate explicit consent, because it falls under the Act's "legitimate use" exception for employment purposes. This exception does not extend to using the same data for anything unrelated to employment (e.g. marketing, third-party sharing) — that requires specific consent.</li>
+    <li><strong>Biometric data gets extra weight:</strong> fingerprint templates should be collected only for a clear, documented purpose (attendance/payroll) and should not be retained indefinitely. Have an actual practice for deleting an employee's fingerprint template when they exit, rather than letting it sit in the database forever.</li>
+    <li><strong>Data minimization:</strong> store what's needed for payroll and compliance, not more. Avoid collecting fields "just in case" they're useful later.</li>
+    <li><strong>Breach awareness:</strong> know, even informally, what you'd need to do and who you'd need to notify if employee data were exposed. Penalties under the Act for serious data protection failures can be substantial, so this isn't a box-ticking exercise even at a single-mill scale.</li>
+    <li><strong>Practical baseline:</strong> encrypt biometric data at rest (already done via Fernet), keep access logs of who viewed or modified sensitive records, define a retention period, and make sure you can actually delete an employee's data on request or on exit.</li>
+  </ul>
+  <p style="color:var(--text-dim); font-size:0.85rem;">
+    This is a working summary, not legal advice — for anything where you need a definitive compliance position
+    (e.g. before scaling this into a product sold to other mills), it's worth a short consult with someone who
+    practices data protection law in India.
+  </p>
+
+  <hr class="section-rule">
+
+  <!-- 14 -->
+  <h2 id="versioning"><span class="num">14</span>Versioning &amp; Rollback</h2>
+  <ul>
+    <li>Tag every release that reaches production, even informally — you want to be able to answer "what code was running last Tuesday" without guessing.</li>
+    <li>Keep the previous deployable build around rather than deleting it immediately — most hosting platforms keep deploy history automatically; know how to redeploy a previous version in under a minute.</li>
+    <li>Before any risky schema change, take a manual backup snapshot in addition to your automated ones, specifically labeled with what's about to change.</li>
+    <li>Keep a simple running changelog — even a plain text file with dates and one-line summaries is enough to reconstruct "what changed and when" later.</li>
+  </ul>
+
+  <hr class="section-rule">
+
+  <!-- 15 -->
+  <h2 id="scaling"><span class="num">15</span>Performance &amp; Scaling</h2>
+  <p>
+    For a single mill's employee count, performance will not be your limiting factor for a long time — correctness
+    and reliability matter far more than speed right now. Don't over-engineer for scale you don't have yet. If this
+    becomes a multi-tenant product sold to other mills later, that's the point to revisit: connection pool sizing
+    under concurrent load, query plans via <code>EXPLAIN ANALYZE</code> on the heavier payroll queries, and pagination
+    on every list endpoint that could realistically grow.
+  </p>
+
+  <hr class="section-rule">
+
+  <!-- 16 -->
+  <h2 id="postlaunch"><span class="num">16</span>The First 90 Days</h2>
+  <table>
+    <tr><th>Period</th><th>Focus</th></tr>
+    <tr><td><strong>Week 1</strong></td><td>Watch logs and error tracking daily. Be ready to hotfix quickly. Don't ship unrelated new features this week — stability first.</td></tr>
+    <tr><td><strong>First payroll cycle</strong></td><td>Run in parallel with Excel if you haven't already fully validated a cycle. Compare every number.</td></tr>
+    <tr><td><strong>After first clean cycle</strong></td><td>Formally retire the Excel process — but keep the last few months' Excel sheets archived as a reference, not deleted.</td></tr>
+    <tr><td><strong>Ongoing — monthly</strong></td><td>Check for outdated dependencies. Review error tracking trends, not just individual incidents.</td></tr>
+    <tr><td><strong>Ongoing — quarterly</strong></td><td>Review who has login/database access and whether they still need it. Run a backup restore drill.</td></tr>
+  </table>
+
+  <hr class="section-rule">
+
+  <!-- 17 -->
+  <h2 id="checklists"><span class="num">17</span>Quick-Reference Checklists</h2>
+
+  <h3><span class="num">A.</span>Pre-Launch</h3>
+  <ul class="checklist">
+    <li>Environments separated (local / staging / production)</li>
+    <li>Secrets out of code, in platform env vars</li>
+    <li>HTTPS enforced everywhere</li>
+    <li>Access control (RLS) configured on every sensitive table</li>
+    <li>Backups on, and restore tested at least once</li>
+    <li>Error tracking wired to actually notify you</li>
+    <li>Server-side validation on every mutating endpoint</li>
+    <li>Rollback plan written before first deploy</li>
+    <li>One full payroll cycle validated against Excel</li>
+    <li>HR staff have used the system before go-live</li>
+  </ul>
+
+  <h3><span class="num">B.</span>Launch Day</h3>
+  <ul class="checklist">
+    <li>Deploy outside of payday / month-end if possible</li>
+    <li>Smoke test immediately after deploy (login, dashboard, one read endpoint)</li>
+    <li>Watch logs actively for the first few hours</li>
+    <li>Confirm the previous version is one click away if a rollback is needed</li>
+  </ul>
+
+  <h3><span class="num">C.</span>Weekly</h3>
+  <ul class="checklist">
+    <li>Skim error tracking for new or recurring issues</li>
+    <li>Confirm automated backups actually ran</li>
+  </ul>
+
+  <h3><span class="num">D.</span>Monthly</h3>
+  <ul class="checklist">
+    <li>Check for outdated dependencies</li>
+    <li>Review payroll run logs for anomalies</li>
+    <li>Update the handoff/documentation file with anything that changed</li>
+  </ul>
+
+  <h3><span class="num">E.</span>Quarterly</h3>
+  <ul class="checklist">
+    <li>Backup restore drill</li>
+    <li>Access review — who can log into what</li>
+    <li>Rotate secrets if it's been a while or if anything was potentially exposed</li>
+  </ul>
+
+  <hr class="section-rule">
+
+  <!-- 18 -->
+  <h2 id="glossary"><span class="num">18</span>Glossary</h2>
+  <table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><strong>RTO</strong></td><td>Recovery Time Objective — how fast the system needs to be back up after an outage.</td></tr>
+    <tr><td><strong>RPO</strong></td><td>Recovery Point Objective — how much data loss is tolerable if something fails.</td></tr>
+    <tr><td><strong>CI/CD</strong></td><td>Continuous Integration / Continuous Deployment — automatically testing and deploying code on every push instead of doing it manually.</td></tr>
+    <tr><td><strong>PITR</strong></td><td>Point-in-Time Recovery — the ability to restore a database to its exact state at a specific past moment, not just to the last full backup.</td></tr>
+    <tr><td><strong>RLS</strong></td><td>Row Level Security — database-enforced rules about which rows a given user/role is allowed to see or modify.</td></tr>
+    <tr><td><strong>UAT</strong></td><td>User Acceptance Testing — real intended users (here, HR staff) testing the system before full go-live.</td></tr>
+    <tr><td><strong>Smoke test</strong></td><td>A fast, shallow check after deploying that the basics still work — not a full test suite, just enough to catch an obviously broken deploy.</td></tr>
+    <tr><td><strong>Zero-downtime deploy</strong></td><td>A deployment strategy where the new version goes live without the application becoming unavailable, usually by keeping schema changes backward-compatible across the transition.</td></tr>
+    <tr><td><strong>3-2-1 backup rule</strong></td><td>Keep 3 copies of data, on 2 different types of storage, with 1 copy stored somewhere offsite from your primary provider.</td></tr>
+  </table>
+
+  <footer>
+    Written as a working reference for the STC Cotyarn Payroll System — first production deployment.
+    Industry practices referenced (OWASP Top 10 2025, India's DPDP Act 2023) reflect general guidance current as of
+    mid-2026; re-check specifics before any major compliance decision, since both security standards and
+    regulatory rules get updated.
+  </footer>
+
+</div>
+</body>
+</html>

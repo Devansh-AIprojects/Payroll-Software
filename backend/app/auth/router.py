@@ -1,0 +1,51 @@
+from fastapi import APIRouter
+from pydantic import BaseModel, EmailStr
+
+from app.auth.dependencies import verify_password, create_access_token
+from app.core.exceptions import UnauthorizedError
+from app.database import get_connection
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str
+    org_id: str
+    user_id: str
+
+
+@router.post("/login", response_model=LoginResponse)
+async def login(body: LoginRequest):
+    async with get_connection() as conn:
+        row = await conn.fetchrow(
+            """
+            SELECT id, org_id, role, password_hash
+            FROM users
+            WHERE email = $1 AND is_active = TRUE
+            LIMIT 1
+            """,
+            body.email,
+        )
+
+    if not row or not verify_password(body.password, row["password_hash"]):
+        raise UnauthorizedError("Invalid email or password")
+
+    token = create_access_token(
+        user_id=str(row["id"]),
+        org_id=str(row["org_id"]),
+        role=row["role"],
+    )
+
+    return LoginResponse(
+        access_token=token,
+        role=row["role"],
+        org_id=str(row["org_id"]),
+        user_id=str(row["id"]),
+    )

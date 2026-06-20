@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STC Cotyarn — Intelligence Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #07091A;
+  --s1:       #0D1124;
+  --s2:       #131929;
+  --b1:       #1C2B44;
+  --b2:       #243452;
+  --cotton:   #F5C53A;
+  --cotton-b: rgba(245,197,58,.1);
+  --cotton-c: rgba(245,197,58,.18);
+  --ai:       #00CDA4;
+  --ai-a:     rgba(0,205,164,.1);
+  --bridge:   #A78BFA;
+  --bridge-a: rgba(167,139,250,.1);
+  --warn:     #FF6B6B;
+  --warn-a:   rgba(255,107,107,.1);
+  --t1:       #EEF2FF;
+  --t2:       #7A8BB0;
+  --t3:       #3D4F6A;
+  --r:        10px;
+  --display:  'Space Grotesk', sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+  --body:     'Inter', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--t1);
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+/* ── HERO ── */
+.hero {
+  padding: 80px 0 64px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(0,205,164,.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 110%,  rgba(245,197,58,.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: .68rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ai);
+  background: var(--ai-a);
+  border: 1px solid rgba(0,205,164,.2);
+  border-radius: 100px;
+  padding: 5px 16px;
+  margin-bottom: 26px;
+}
+.hero-title {
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -.025em;
+  line-height: 1.08;
+  margin-bottom: 8px;
+}
+.hero-title .c { color: var(--cotton); }
+.hero-mill {
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--t3);
+  letter-spacing: .1em;
+  margin-bottom: 20px;
+}
+.hero-sub {
+  font-size: .95rem;
+  color: var(--t2);
+  max-width: 480px;
+  margin: 0 auto 44px;
+  font-weight: 300;
+  line-height: 1.75;
+}
+.hero-stats {
+  display: inline-flex;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.hero-stat {
+  padding: 16px 32px;
+  border-right: 1px solid var(--b1);
+}
+.hero-stat:last-child { border-right: none; }
+.hsn {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: block;
+  line-height: 1.2;
+}
+.hsn-cotton { color: var(--cotton); }
+.hsn-ai     { color: var(--ai); }
+.hsn-bridge { color: var(--bridge); }
+.hsl {
+  font-family: var(--mono);
+  font-size: .6rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--t3);
+  display: block;
+  margin-top: 2px;
+}
+
+/* ── SECTION UTIL ── */
+.sec-ey {
+  font-family: var(--mono);
+  font-size: .66rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 10px;
+}
+.sec-ti {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.sec-su {
+  font-size: .875rem;
+  color: var(--t2);
+  margin-bottom: 30px;
+  font-weight: 300;
+}
+
+/* ── FOUNDATION ── */
+.foundation {
+  padding: 64px 0;
+  border-top: 1px solid var(--b1);
+  background: linear-gradient(180deg, var(--cotton-b) 0%, transparent 60%);
+}
+.foundation .sec-ti { color: var(--cotton); }
+
+.pipeline {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.pipe-step {
+  flex: 1;
+  min-width: 128px;
+  background: var(--s1);
+  border: 1px solid var(--b2);
+  border-radius: var(--r);
+  padding: 16px 12px;
+}
+.pipe-icon { font-size: 1.3rem; margin-bottom: 7px; }
+.pipe-name {
+  font-family: var(--display);
+  font-size: .82rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.pipe-detail {
+  font-family: var(--mono);
+  font-size: .62rem;
+  color: var(--t2);
+  line-height: 1.6;
+}
+.pipe-arr {
+  color: var(--cotton);
+  font-size: 1.1rem;
+  padding: 0 4px;
+  flex-shrink: 0;
+  opacity: .55;
+  display: flex;
+  align-items: center;
+}
+.found-rule {
+  background: rgba(245,197,58,.05);
+  border: 1px solid var(--cotton-c);
+  border-radius: 8px;
+  padding: 13px 17px;
+  font-family: var(--mono);
+  font-size: .73rem;
+  color: var(--cotton);
+  line-height: 1.65;
+}
+.found-rule strong { color: var(--t1); font-weight: 500; }
+
+/* ── LAYERS ── */
+.layers {
+  padding: 64px 0;
+  border-top: 1px solid var(--b1);
+}
+.layers-hdr { margin-bottom: 36px; }
+
+/* card */
+.lcard {
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  padding: 26px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.lcard.vis { opacity: 1; transform: none; }
+.lcard::after {
+  content: attr(data-ghost);
+  position: absolute;
+  right: 18px;
+  bottom: -8px;
+  font-family: var(--display);
+  font-size: 6rem;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  color: rgba(255,255,255,.03);
+}
+.lcard-br { border-color: rgba(167,139,250,.22); }
+.lcard-ai { border-color: rgba(0,205,164,.13); }
+
+.lcard-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.badge {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.badge-br {
+  border-color: var(--bridge); color: var(--bridge);
+  background: var(--bridge-a);
+  box-shadow: 0 0 18px rgba(167,139,250,.18);
+}
+.badge-ai {
+  border-color: var(--ai); color: var(--ai);
+  background: var(--ai-a);
+}
+.lcard-meta { flex: 1; min-width: 0; }
+.lcard-pri {
+  font-family: var(--mono);
+  font-size: .62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.lcard-pri-br { color: var(--bridge); }
+.lcard-pri-ai { color: var(--ai); }
+.lcard-name {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.phase-tag {
+  font-family: var(--mono);
+  font-size: .63rem;
+  padding: 2px 9px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.pt-br   { background: var(--bridge-a); color: var(--bridge); border: 1px solid rgba(167,139,250,.22); }
+.pt-ai   { background: var(--ai-a);     color: var(--ai);     border: 1px solid rgba(0,205,164,.22); }
+.pt-dim  { background: rgba(255,255,255,.03); color: var(--t2); border: 1px solid var(--b1); }
+
+.lcard-sig {
+  background: var(--s2);
+  border-left: 3px solid var(--b2);
+  border-radius: 0 7px 7px 0;
+  padding: 10px 14px;
+  font-size: .78rem;
+  color: var(--t2);
+  font-style: italic;
+  margin-bottom: 15px;
+  line-height: 1.65;
+}
+.lcard-sig-br { border-left-color: var(--bridge); }
+
+.lcard-pts {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 18px;
+}
+.lcard-pts li {
+  font-size: .83rem;
+  color: var(--t2);
+  padding-left: 18px;
+  position: relative;
+  line-height: 1.55;
+}
+.lcard-pts li::before {
+  content: '→';
+  position: absolute; left: 0;
+  color: var(--t3);
+}
+.lcard-plug {
+  font-family: var(--mono);
+  font-size: .67rem;
+  color: var(--t3);
+  border-top: 1px solid var(--b1);
+  padding-top: 13px;
+}
+.lcard-plug em { color: var(--ai); font-style: normal; }
+
+/* ── LAYER A FLOW ── */
+.flow-wrap {
+  border-top: 1px solid var(--b1);
+  padding-top: 22px;
+  margin-top: 22px;
+}
+.flow-ey {
+  font-family: var(--mono);
+  font-size: .63rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--bridge);
+  margin-bottom: 18px;
+}
+.flow-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.fn {
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: .8rem;
+  text-align: center;
+  width: 100%;
+  max-width: 300px;
+}
+.fn-lbl {
+  font-family: var(--mono);
+  font-size: .58rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 3px;
+  opacity: .5;
+}
+.fn-src  { border-color: rgba(245,197,58,.32); color: var(--cotton); }
+.fn-eng  { border-color: rgba(167,139,250,.38); color: var(--bridge); background: var(--bridge-a); }
+.fn-pass { border-color: var(--b2); color: var(--t2); }
+.fn-flag { border-color: rgba(255,107,107,.32); color: var(--warn); background: var(--warn-a); }
+.fn-out  { border-color: rgba(0,205,164,.22); color: var(--ai); }
+.fn-dna  { border-color: var(--ai); color: var(--ai); background: var(--ai-a); font-weight: 600; }
+
+.fdown { color: var(--t3); font-size: .9rem; padding: 5px 0; text-align: center; line-height: 1; }
+
+.flow-mid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+  max-width: 520px;
+}
+.flow-cfg {
+  background: var(--s2);
+  border: 1px dashed var(--b2);
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: .72rem;
+  color: var(--t3);
+  text-align: center;
+  min-width: 130px;
+  flex-shrink: 0;
+}
+.flow-cfg-lbl {
+  font-family: var(--mono);
+  font-size: .57rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--bridge);
+  opacity: .7;
+  display: block;
+  margin-bottom: 3px;
+}
+.feed-arr { color: var(--t3); font-size: .85rem; flex-shrink: 0; }
+
+.flow-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+  margin: 8px 0;
+}
+.chip {
+  font-family: var(--mono);
+  font-size: .6rem;
+  background: var(--bridge-a);
+  border: 1px solid rgba(167,139,250,.2);
+  color: var(--bridge);
+  border-radius: 4px;
+  padding: 3px 9px;
+}
+
+.fsplit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+  max-width: 520px;
+  margin-top: 0;
+}
+.fsplit-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.fsplit-lbl {
+  font-family: var(--mono);
+  font-size: .62rem;
+  color: var(--t3);
+  padding: 4px 0;
+  text-align: center;
+}
+.fn-full { max-width: 100%; width: 100%; }
+
+/* ── SEQUENCING ── */
+.seq {
+  padding: 64px 0;
+  border-top: 1px solid var(--b1);
+}
+.seq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+.seq-table th {
+  font-family: var(--mono);
+  font-size: .62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--t3);
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--b1);
+  white-space: nowrap;
+}
+.seq-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+  color: var(--t2);
+  vertical-align: top;
+}
+.seq-table tr:last-child td { border-bottom: none; }
+.seq-table tr:hover td { background: rgba(255,255,255,.02); }
+.td-ph {
+  font-family: var(--mono);
+  font-size: .65rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  display: inline-block;
+}
+.ph-cotton { background: var(--cotton-b); color: var(--cotton); border: 1px solid rgba(245,197,58,.2); }
+.ph-br     { background: var(--bridge-a); color: var(--bridge); border: 1px solid rgba(167,139,250,.2); }
+.ph-ai     { background: var(--ai-a);     color: var(--ai);     border: 1px solid rgba(0,205,164,.2); }
+.td-ly { font-family: var(--display); font-weight: 600; color: var(--t1); white-space: nowrap; }
+.td-dep { font-family: var(--mono); font-size: .7rem; }
+
+/* ── INSIGHT ── */
+.insight { padding: 40px 0 80px; }
+.ins-card {
+  background: linear-gradient(135deg, var(--bridge-a) 0%, var(--ai-a) 100%);
+  border: 1px solid rgba(167,139,250,.28);
+  border-radius: 14px;
+  padding: 30px 32px;
+}
+.ins-lbl {
+  font-family: var(--mono);
+  font-size: .63rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--bridge);
+  margin-bottom: 11px;
+}
+.ins-txt {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.7;
+  color: var(--t1);
+}
+.ins-txt strong { color: var(--ai); font-weight: 600; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--b1);
+  padding: 22px 28px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: .63rem;
+  color: var(--t3);
+  letter-spacing: .06em;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 620px) {
+  .hero-stats { flex-direction: column; width: 100%; }
+  .hero-stat  { border-right: none; border-bottom: 1px solid var(--b1); }
+  .hero-stat:last-child { border-bottom: none; }
+  .pipeline   { gap: 3px; }
+  .pipe-step  { min-width: 100px; padding: 12px 8px; }
+  .flow-mid   { flex-direction: column; align-items: center; }
+  .flow-cfg   { min-width: unset; width: 100%; max-width: 300px; }
+  .fsplit     { grid-template-columns: 1fr; }
+  .seq-table  { font-size: .74rem; }
+  .seq-table th, .seq-table td { padding: 8px 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─────────────── HERO ─────────────── -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-pill">intelligence stack · research synthesis · 2026</div>
+    <h1 class="hero-title">STC Cotyarn<br><span class="c">Intelligence</span> Stack</h1>
+    <div class="hero-mill">STC COTYARN EXIM PVT. LTD. · MAHARASHTRA, INDIA</div>
+    <p class="hero-sub">
+      Traditional payroll as the foundation. Seven intelligence layers wrapping around it — from anomaly detection to earned wage access. Built in dependency order.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hsn hsn-cotton">1</span>
+        <span class="hsl">Foundation</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hsn hsn-bridge">7</span>
+        <span class="hsl">Intel Layers</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hsn hsn-ai">42</span>
+        <span class="hsl">Mill Workers</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── FOUNDATION ─────────────── -->
+<section class="foundation">
+  <div class="wrap">
+    <div class="sec-ey">Traditional Layer — Build First</div>
+    <div class="sec-ti">The Foundation</div>
+    <p class="sec-su">Everything else wraps around this. Zero business logic in code — all rules live in Postgres config.</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-icon">👆</div>
+        <div class="pipe-name">Fingerprint Logs</div>
+        <div class="pipe-detail">Device → raw log<br>parse + normalise</div>
+      </div>
+      <div class="pipe-arr">→</div>
+      <div class="pipe-step">
+        <div class="pipe-icon">📋</div>
+        <div class="pipe-name">Attendance</div>
+        <div class="pipe-detail">Days present<br>OT / undertime calc</div>
+      </div>
+      <div class="pipe-arr">→</div>
+      <div class="pipe-step">
+        <div class="pipe-icon">⚙️</div>
+        <div class="pipe-name">Payroll Engine</div>
+        <div class="pipe-detail">Tier logic · EPF<br>Deductions · Gross</div>
+      </div>
+      <div class="pipe-arr">→</div>
+      <div class="pipe-step">
+        <div class="pipe-icon">📄</div>
+        <div class="pipe-name">Payslip</div>
+        <div class="pipe-detail">Generate · disburse<br>bank + cash split</div>
+      </div>
+    </div>
+
+    <div class="found-rule">
+      <strong>Core design invariant:</strong> Shift types · tier thresholds · EPF rules · department config · OT rates — all in DB config, never hardcoded. Rules change; config rows change with them.
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── LAYERS ─────────────── -->
+<section class="layers">
+  <div class="wrap">
+    <div class="layers-hdr">
+      <div class="sec-ey">Intelligence Layers — Priority Order</div>
+      <div class="sec-ti">What Goes On Top</div>
+      <p class="sec-su">Sequenced by dependency. Each layer requires the one before it to be stable. Don't skip ahead.</p>
+    </div>
+
+    <!-- ── LAYER A ── PRIORITY 1 / BRIDGE ── -->
+    <div class="lcard lcard-br" data-ghost="A">
+      <div class="lcard-top">
+        <div class="badge badge-br">A</div>
+        <div class="lcard-meta">
+          <div class="lcard-pri lcard-pri-br">Priority 1 · Bridge Layer · Post-MVP</div>
+          <div class="lcard-name">Anomaly Detection</div>
+          <span class="phase-tag pt-br">Build right after engine stabilises</span>
+        </div>
+      </div>
+      <div class="lcard-sig lcard-sig-br">
+        Research signal: AI can automatically detect mismatches in payroll data — wrong wage payments, benefit computation errors, tax deduction anomalies. Organisations using AI-driven payroll software observed a 20% improvement in payroll accuracy.
+      </div>
+      <ul class="lcard-pts">
+        <li>Flag when a Skilled worker's gross deviates from historical average by more than a configured threshold</li>
+        <li>Detect duplicate attendance punches from the fingerprint device before they hit payroll</li>
+        <li>Catch tier-boundary edge cases — e.g. 23.5 days → tier 1, but OT pushes effective days to 24</li>
+        <li>Missing daily sync detection: no data from device after N hours = alert, not a silent gap</li>
+      </ul>
+      <div class="lcard-plug">Plugs into: Payroll engine output → <em>DNA Engine</em> (first real domain feed from payroll)</div>
+
+      <!-- LAYER A CONCRETE DATA FLOW -->
+      <div class="flow-wrap">
+        <div class="flow-ey">Concrete Data Flow — Layer A</div>
+        <div class="flow-body">
+
+          <div class="fn fn-src">
+            <span class="fn-lbl">Input from</span>
+            Payroll Engine Output
+            <div style="font-size:.7rem;color:var(--t2);margin-top:3px;">computed payslip rows (DB)</div>
+          </div>
+          <div class="fdown">↓</div>
+
+          <div class="flow-mid">
+            <div class="fn fn-eng" style="max-width:220px;">
+              <span class="fn-lbl">Processor</span>
+              Anomaly Rules Engine
+              <div style="font-size:.7rem;color:var(--t2);margin-top:3px;font-style:italic;">Node.js / FastAPI service</div>
+            </div>
+            <div class="feed-arr">←</div>
+            <div class="flow-cfg">
+              <span class="flow-cfg-lbl">Config DB feeds</span>
+              historical avg per worker<br>tier thresholds<br>dept punch rules
+            </div>
+          </div>
+
+          <div class="flow-chips">
+            <span class="chip">gross deviation &gt;X%</span>
+            <span class="chip">tier boundary edge case</span>
+            <span class="chip">duplicate punch</span>
+            <span class="chip">missing sync gap</span>
+          </div>
+
+          <div class="fdown">↓ &nbsp;evaluate each row</div>
+
+          <div class="fsplit">
+            <div class="fsplit-col">
+              <div class="fsplit-lbl">✓ &nbsp;CLEAN</div>
+              <div class="fn fn-pass fn-full">
+                <span class="fn-lbl">Pass</span>
+                Payslip finalised
+              </div>
+            </div>
+            <div class="fsplit-col">
+              <div class="fsplit-lbl">⚠ &nbsp;FLAGGED</div>
+              <div class="fn fn-flag fn-full">
+                <span class="fn-lbl">Queue</span>
+                BullMQ Alert Queue
+              </div>
+              <div class="fdown" style="padding:5px 0">↓</div>
+              <div class="fn fn-out fn-full">
+                <span class="fn-lbl">Notify</span>
+                HR Dashboard · WhatsApp
+              </div>
+              <div class="fdown" style="padding:5px 0">↓</div>
+              <div class="fn fn-dna fn-full">
+                <span class="fn-lbl">Feed</span>
+                DNA Engine
+                <div style="font-size:.68rem;font-weight:400;margin-top:3px;color:var(--t2);">anomaly vectorised + stored<br>builds intelligence over time</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LAYER D ── PRIORITY 2 ── -->
+    <div class="lcard lcard-ai" data-ghost="D">
+      <div class="lcard-top">
+        <div class="badge badge-ai">D</div>
+        <div class="lcard-meta">
+          <div class="lcard-pri lcard-pri-ai">Priority 2 · Post-MVP — Architectural Upgrade</div>
+          <div class="lcard-name">Real-Time Attendance → Payroll Sync</div>
+          <span class="phase-tag pt-br">Requires Phase 4 parser stability</span>
+        </div>
+      </div>
+      <div class="lcard-sig">
+        Research signal: Continuous attendance sync feeds payroll calculations daily. Dynamic OT rules auto-adjust pay structures. Real-time payroll syncs with time, attendance, and finance systems — ensuring instant adjustments for overtime, variable pay, or tax updates.
+      </div>
+      <ul class="lcard-pts">
+        <li>Replace month-end batch with daily fingerprint log sync via Supabase Realtime</li>
+        <li>Owner and HR see live gross liability as month progresses — no surprise at month end</li>
+        <li>Device failure detection: no incoming data after N hours triggers an immediate alert</li>
+        <li>Dynamic OT re-calc: each day's punch re-runs OT logic; state stays live in DB</li>
+      </ul>
+      <div class="lcard-plug">Plugs into: Phase 4 fingerprint parser → <em>Supabase Realtime</em> → live payroll state table</div>
+    </div>
+
+    <!-- ── LAYER B ── PRIORITY 3 ── -->
+    <div class="lcard lcard-ai" data-ghost="B">
+      <div class="lcard-top">
+        <div class="badge badge-ai">B</div>
+        <div class="lcard-meta">
+          <div class="lcard-pri lcard-pri-ai">Priority 3 · Multi-Tenant v1</div>
+          <div class="lcard-name">Predictive Cost Forecasting</div>
+          <span class="phase-tag pt-ai">Needs 3+ months of payroll history</span>
+        </div>
+      </div>
+      <div class="lcard-sig">
+        Research signal: AI algorithms analyse historical payroll data to predict future costs, spot seasonal trends, and flag anomalies. Empowers finance teams to plan better and avoid over- or under-budgeting.
+      </div>
+      <ul class="lcard-pts">
+        <li>"Next month's payroll will be ~₹X based on current attendance trajectory" — pushed as alert</li>
+        <li>Cotton season = more shift OT = cost spike prediction surfaced ahead of time</li>
+        <li>Mill owners think in production cycles, not calendar months — this speaks their language</li>
+        <li>Seasonal workforce pattern detection across years as data accumulates</li>
+      </ul>
+      <div class="lcard-plug">Plugs into: <em>Reasoning Core</em> → output as dashboard widget or WhatsApp alert</div>
+    </div>
+
+    <!-- ── LAYER F ── PRIORITY 4 ── -->
+    <div class="lcard lcard-ai" data-ghost="F">
+      <div class="lcard-top">
+        <div class="badge badge-ai">F</div>
+        <div class="lcard-meta">
+          <div class="lcard-pri lcard-pri-ai">Priority 4 · Multi-Tenant v1 — High Value</div>
+          <div class="lcard-name">Compliance Auto-Monitoring</div>
+          <span class="phase-tag pt-ai">Requires DNA Engine live</span>
+        </div>
+      </div>
+      <div class="lcard-sig">
+        Research signal: By 2026, compliance will no longer be manual effort. Labour and tax regulations change almost daily. AI reads, interprets, and applies new rules automatically — keeping policies current everywhere the business operates.
+      </div>
+      <ul class="lcard-pts">
+        <li>EPF rate changes, minimum wage revisions — Maharashtra state notifications ingested automatically</li>
+        <li>System flags: "New min wage for Skilled from June 1 — your LC tier-1 rate is below threshold"</li>
+        <li>Owner approves config update → decision logged in DNA Engine audit trail regardless of action</li>
+        <li>Multi-tenant killer feature: each mill gets state-specific compliance alerts automatically</li>
+      </ul>
+      <div class="lcard-plug">Plugs into: <em>DNA Engine</em> (rules layer) → Reasoning Core → alert output</div>
+    </div>
+
+    <!-- ── LAYER C ── PRIORITY 5 ── -->
+    <div class="lcard lcard-ai" data-ghost="C">
+      <div class="lcard-top">
+        <div class="badge badge-ai">C</div>
+        <div class="lcard-meta">
+          <div class="lcard-pri lcard-pri-ai">Priority 5 · Multi-Tenant v2</div>
+          <div class="lcard-name">Adaptive Tier Config Suggestions</div>
+          <span class="phase-tag pt-dim">Needs DNA Engine + accumulated decision history</span>
+        </div>
+      </div>
+      <div class="lcard-sig">
+        Research signal: AI-powered systems are replacing static config tables with adaptive config. Can aggregate market rate data, spot trends, and surface actionable insights for more equitable and competitive compensation strategies.
+      </div>
+      <ul class="lcard-pts">
+        <li>DNA Engine surfaces: "RF tier-1 rate hasn't changed in 18 months, Maharashtra market rate is ₹X"</li>
+        <li>Suggest → human confirm loop — never auto-apply rate changes to payroll config without approval</li>
+        <li>Decision logged back into DNA Engine regardless of approve / reject — builds decision history</li>
+        <li>Future suggestions improve as the engine learns from past owner decisions over time</li>
+      </ul>
+      <div class="lcard-plug">Plugs into: <em>DNA Engine</em> (decision history) → Reasoning Core → owner action</div>
+    </div>
+
+    <!-- ── LAYER E ── PRIORITY 6 ── -->
+    <div class="lcard lcard-ai" data-ghost="E">
+      <div class="lcard-top">
+        <div class="badge badge-ai">E</div>
+        <div class="lcard-meta">
+          <div class="lcard-pri lcard-pri-ai">Priority 6 · Multi-Tenant v2 — SaaS Pitch</div>
+          <div class="lcard-name">Employee Self-Service</div>
+          <span class="phase-tag pt-dim">Not needed for STC Cotyarn (42 workers, owner knows everyone)</span>
+        </div>
+      </div>
+      <div class="lcard-sig">
+        Research signal: AI chatbots answer employee queries on salary slips, tax declarations, and leave balances — 24/7. Reduces pressure on HR and improves employee satisfaction. Modern workforce expects digital access to pay information.
+      </div>
+      <ul class="lcard-pts">
+        <li>WhatsApp bot: "What's my salary this month?" → pulls from live payroll state in real-time</li>
+        <li>"How many days have I attended?" → from realtime attendance sync (Layer D dependency)</li>
+        <li>Not a priority for STC Cotyarn; critical for multi-tenant pitch at mills with 200+ workers</li>
+        <li>Dramatically reduces informal HR queries — mill supervisors spend hours answering these daily</li>
+      </ul>
+      <div class="lcard-plug">Plugs into: <em>Integration layer</em> → WhatsApp Business API or web portal</div>
+    </div>
+
+    <!-- ── LAYER G ── PRIORITY 7 ── -->
+    <div class="lcard lcard-ai" data-ghost="G">
+      <div class="lcard-top">
+        <div class="badge badge-ai">G</div>
+        <div class="lcard-meta">
+          <div class="lcard-pri lcard-pri-ai">Priority 7 · Multi-Tenant v3 — Early Mover</div>
+          <div class="lcard-name">Earned Wage Access (EWA)</div>
+          <span class="phase-tag pt-dim">India EWA regulation still forming — build it clean now</span>
+        </div>
+      </div>
+      <div class="lcard-sig">
+        Research signal: In 2026, waiting 30 days to access earned wages feels structurally outdated. EWA moves from perk to infrastructure. India regulation still forming — unlike the US where CFPB is classifying it as a credit product.
+      </div>
+      <ul class="lcard-pts">
+        <li>Worker attended 18 days → requests partial wage advance via WhatsApp or self-service portal</li>
+        <li>System calculates safe withdrawal limit → owner approves → logged as advance deduction next cycle</li>
+        <li>India EWA regulation still forming = early mover advantage if built clean before rules land</li>
+        <li>Strong differentiator for multi-tenant pitch to mills with blue-collar daily-wage workforce</li>
+      </ul>
+      <div class="lcard-plug">Plugs into: <em>Real-time payroll state</em> → Integration layer (bank API) → deduction config</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────── SEQUENCING TABLE ─────────────── -->
+<section class="seq">
+  <div class="wrap">
+    <div class="sec-ey">Sequencing</div>
+    <div class="sec-ti">Build Order</div>
+    <p class="sec-su">Each row is blocked by its dependencies. Stable foundation first, intelligence layers after.</p>
+    <table class="seq-table">
+      <thead>
+        <tr>
+          <th>Phase</th>
+          <th>Layer</th>
+          <th>What it does</th>
+          <th>Depends on</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="td-ph ph-cotton">MVP</span></td>
+          <td><span class="td-ly">Foundation</span></td>
+          <td>Traditional payroll engine end-to-end</td>
+          <td class="td-dep">Schema + fingerprint parser</td>
+        </tr>
+        <tr>
+          <td><span class="td-ph ph-br">Post-MVP</span></td>
+          <td><span class="td-ly">A — Anomaly</span></td>
+          <td>Detect payroll + attendance errors automatically</td>
+          <td class="td-dep">Stable payroll engine output</td>
+        </tr>
+        <tr>
+          <td><span class="td-ph ph-br">Post-MVP</span></td>
+          <td><span class="td-ly">D — Realtime</span></td>
+          <td>Daily attendance → live payroll state via Supabase</td>
+          <td class="td-dep">Phase 4 parser stable</td>
+        </tr>
+        <tr>
+          <td><span class="td-ph ph-ai">Multi-tenant v1</span></td>
+          <td><span class="td-ly">B — Forecasting</span></td>
+          <td>Predict next month's payroll cost from trajectory</td>
+          <td class="td-dep">3+ months payroll history</td>
+        </tr>
+        <tr>
+          <td><span class="td-ph ph-ai">Multi-tenant v1</span></td>
+          <td><span class="td-ly">F — Compliance</span></td>
+          <td>Auto-flag regulation and wage law changes</td>
+          <td class="td-dep">DNA Engine live</td>
+        </tr>
+        <tr>
+          <td><span class="td-ph ph-ai">Multi-tenant v2</span></td>
+          <td><span class="td-ly">C — Adaptive</span></td>
+          <td>Surface market-aware tier rate suggestions</td>
+          <td class="td-dep">DNA Engine + decision history</td>
+        </tr>
+        <tr>
+          <td><span class="td-ph ph-ai">Multi-tenant v2</span></td>
+          <td><span class="td-ly">E — Self-Service</span></td>
+          <td>WhatsApp bot for worker payroll queries</td>
+          <td class="td-dep">Integration layer + Layer D</td>
+        </tr>
+        <tr>
+          <td><span class="td-ph ph-ai">Multi-tenant v3</span></td>
+          <td><span class="td-ly">G — EWA</span></td>
+          <td>On-demand partial wage access before payday</td>
+          <td class="td-dep">Realtime payroll + bank API</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─────────────── KEY INSIGHT ─────────────── -->
+<section class="insight">
+  <div class="wrap">
+    <div class="ins-card">
+      <div class="ins-lbl">Key Insight</div>
+      <div class="ins-txt">
+        Layer A (Anomaly Detection) is the <strong>bridge</strong> between your traditional payroll system and the DNA Engine. It's the first real output the AI layer produces from payroll domain data — and maps directly to Step ① of the AI roadmap: <strong>DNA Engine + RAG for one business domain</strong>. Build it right after the payroll engine stabilises. The payslip rows <em>are</em> the first training ground.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  STC Cotyarn Exim Pvt. Ltd. · Intelligence Stack Research Synthesis · 2026
+</footer>
+
+<script>
+const cards = document.querySelectorAll('.lcard');
+const io = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('vis'), i * 70);
+        io.unobserve(e.target);
+      }
+    });
+  },
+  { threshold: 0.08 }
+);
+cards.forEach(c => io.observe(c));
+</script>
+</body>
+</html>

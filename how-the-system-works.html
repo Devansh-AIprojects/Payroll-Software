@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How The Payroll System Works — Phase-by-Phase Guide</title>
+<style>
+  :root {
+    --bg: #000000;
+    --bg-card: #0d0d0d;
+    --border: #262626;
+    --text: #d8d8d8;
+    --text-dim: #8a8a8a;
+    --heading: #ffffff;
+    --accent: #f59e0b;
+    --accent-dim: #b97f1d;
+    --danger: #f43f5e;
+    --success: #14b8a6;
+    --warning: #fb923c;
+    --code-bg: #111111;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Arial, sans-serif;
+    line-height: 1.65; margin: 0; padding: 0;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 120px; }
+  header.title-block { border-bottom: 1px solid var(--border); padding-bottom: 32px; margin-bottom: 40px; }
+  header.title-block h1 { color: var(--heading); font-size: 1.9rem; margin: 0 0 8px; letter-spacing: -0.01em; }
+  header.title-block .subtitle { color: var(--accent); font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; }
+  header.title-block p { color: var(--text-dim); font-size: 0.95rem; max-width: 660px; }
+  h2 { color: var(--heading); font-size: 1.35rem; margin-top: 56px; margin-bottom: 4px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { color: var(--heading); font-size: 1.05rem; margin-top: 28px; margin-bottom: 8px; }
+  h3 .num { color: var(--accent-dim); margin-right: 6px; }
+  p { margin: 10px 0; }
+  ul, ol { margin: 10px 0; padding-left: 24px; }
+  li { margin: 6px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px;
+    padding: 1px 6px; font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 0.85em; color: #ffd699;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px 16px; overflow-x: auto; font-size: 0.82rem;
+  }
+  pre code { background: none; border: none; padding: 0; color: #c9c9c9; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 16px 0; }
+  .card.danger { border-left: 3px solid var(--danger); }
+  .card.warn { border-left: 3px solid var(--warning); }
+  .card.ok { border-left: 3px solid var(--success); }
+  .card.info { border-left: 3px solid var(--accent); }
+  .card .label { text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 6px; color: var(--text-dim); }
+  .card.danger .label { color: var(--danger); }
+  .card.warn .label { color: var(--warning); }
+  .card.ok .label { color: var(--success); }
+  .card.info .label { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #111111; color: var(--heading); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  tr:nth-child(even) td { background: #0a0a0a; }
+  td code, th code { white-space: nowrap; }
+  .files {
+    background: var(--bg-card); border: 1px dashed var(--border); border-radius: 8px;
+    padding: 14px 18px; margin: 18px 0; font-size: 0.85rem;
+  }
+  .files .label { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .files ul { margin: 4px 0; padding-left: 18px; }
+  .files li { margin: 3px 0; }
+  .flow {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin: 18px 0; padding: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  .flow .step { background: #161616; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); }
+  .flow .arrow { color: var(--accent); font-weight: 700; }
+  nav.toc { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 40px; }
+  nav.toc .label { text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-dim); font-weight: 700; margin-bottom: 10px; }
+  nav.toc ol { columns: 2; -webkit-columns: 2; column-gap: 32px; padding-left: 20px; font-size: 0.88rem; }
+  nav.toc li { margin: 5px 0; break-inside: avoid; }
+  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.82rem; }
+  .badge { display: inline-block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 4px; background: rgba(245,158,11,0.15); color: var(--accent); border: 1px solid rgba(245,158,11,0.4); }
+  hr.section-rule { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+  @media (max-width: 640px) { nav.toc ol { columns: 1; } .flow { flex-direction: column; align-items: stretch; } .flow .arrow { text-align: center; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="title-block">
+    <div class="subtitle">Internal Reference — STC Cotyarn Payroll System</div>
+    <h1>How The System Actually Works</h1>
+    <p>
+      Most of this codebase was built by AI agents in Antigravity, in phases, across sessions you weren't
+      fully present for. This guide walks through what each phase actually does — in the real code, not
+      a summary of intentions — so that when something breaks, or someone asks how payroll gets calculated,
+      or you want to improve a step, you know exactly where to look and why it's built that way. Read it once
+      top to bottom, then keep it as a map.
+    </p>
+  </header>
+
+  <nav class="toc">
+    <div class="label">Contents</div>
+    <ol>
+      <li><a href="#bigpicture">The Big Picture</a></li>
+      <li><a href="#foundations">Foundations — Auth, DB, Config</a></li>
+      <li><a href="#phase1">Phase 1 — Employee Master &amp; Org Config</a></li>
+      <li><a href="#phase2">Phase 2 — Fingerprint Enrollment</a></li>
+      <li><a href="#phase3">Phase 3 — Devices &amp; ADMS Punch Ingestion</a></li>
+      <li><a href="#phase4">Phase 4 — Attendance Engine &amp; Validation Gate</a></li>
+      <li><a href="#phase56">Phase 5 &amp; 6 — Payroll Engine</a></li>
+      <li><a href="#frontend">Frontend Architecture</a></li>
+      <li><a href="#walkthrough">One Full Monthly Cycle, End to End</a></li>
+      <li><a href="#routemap">Route Map</a></li>
+      <li><a href="#dbmap">Database Table Map</a></li>
+      <li><a href="#troubleshoot">Where To Look When Something Breaks</a></li>
+      <li><a href="#limitations">Known Limitations &amp; Ideas To Improve</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+    </ol>
+  </nav>
+
+  <!-- BIG PICTURE -->
+  <h2 id="bigpicture"><span class="num">01</span>The Big Picture</h2>
+  <p>
+    Two independent things happen in this system, and almost every bug or question traces back to confusing them:
+  </p>
+  <ol>
+    <li><strong>The attendance pipeline</strong> — a physical fingerprint scanner pushes punch data to your server, which gets turned into daily attendance records, which get checked for problems.</li>
+    <li><strong>The payroll pipeline</strong> — once attendance for a month is clean, the payroll engine reads it and turns it into actual rupee amounts per employee.</li>
+  </ol>
+  <p>The two pipelines are deliberately decoupled — payroll never touches raw punches directly, only the processed <code>attendance_daily</code> table. Here's the full chain:</p>
+
+  <div class="flow">
+    <div class="step">BioMax device</div><div class="arrow">→</div>
+    <div class="step"><code>/iclock/cdata</code></div><div class="arrow">→</div>
+    <div class="step"><code>attendance_logs</code></div><div class="arrow">→</div>
+    <div class="step">processing engine</div><div class="arrow">→</div>
+    <div class="step"><code>attendance_daily</code></div><div class="arrow">→</div>
+    <div class="step">validation gate</div><div class="arrow">→</div>
+    <div class="step">payroll engine</div><div class="arrow">→</div>
+    <div class="step"><code>payroll_records</code></div><div class="arrow">→</div>
+    <div class="step">payslip</div>
+  </div>
+
+  <p>Every web request (frontend included) follows the same general shape:</p>
+  <div class="flow">
+    <div class="step">React page</div><div class="arrow">→</div>
+    <div class="step"><code>api</code> / <code>raw</code> client</div><div class="arrow">→</div>
+    <div class="step">FastAPI router</div><div class="arrow">→</div>
+    <div class="step">service.py</div><div class="arrow">→</div>
+    <div class="step">queries.py (SQL)</div><div class="arrow">→</div>
+    <div class="step">Postgres</div>
+  </div>
+  <p>
+    <strong>router.py</strong> only handles HTTP concerns (auth dependency, request/response shape).
+    <strong>service.py</strong> holds the actual logic and talks to the DB. <strong>queries.py</strong> is just raw
+    SQL strings with <code>$1, $2...</code> placeholders — asyncpg fills them in, which is why SQL injection
+    isn't a real risk here as long as this pattern is kept.
+  </p>
+
+  <hr class="section-rule">
+
+  <!-- FOUNDATIONS -->
+  <h2 id="foundations"><span class="num">02</span>Foundations — Auth, Database, Config</h2>
+
+  <h3><span class="num">2.1</span>How a request gets authenticated</h3>
+  <p>
+    Login (<code>POST /api/v1/auth/login</code>) checks the email against <code>users</code>, verifies the password
+    with bcrypt, and issues a JWT containing <code>user_id</code>, <code>org_id</code>, and <code>role</code>,
+    signed with <code>secret_key</code> and valid for 8 hours (matches a mill HR shift).
+  </p>
+  <p>
+    Every protected route depends on <code>get_current_user</code>, which decodes the JWT <em>and then still
+    queries the DB</em> to confirm the user is still <code>is_active</code>. This means deactivating a user takes
+    effect on their very next request — there's no caching to work around — at the cost of one extra DB query per
+    request. <code>require_hr</code> and <code>require_admin</code> are just role checks layered on top of this.
+  </p>
+  <div class="card info">
+    <div class="label">Where the org boundary lives</div>
+    Every query in this codebase filters by <code>org_id</code> pulled from the JWT, not from anything the client
+    sends. This is the actual multi-tenant boundary — if you ever add a new query, this is the rule to never break.
+  </div>
+
+  <h3><span class="num">2.2</span>Database connection</h3>
+  <p>
+    <code>database.py</code> creates a single asyncpg connection pool (2–10 connections) at app startup and reuses
+    it for the life of the process. <code>get_connection()</code> is for normal reads/writes; <code>get_transaction()</code>
+    wraps multiple statements so they commit or roll back together — used for payroll status changes and the
+    payroll run itself, where a half-applied result would be worse than an outright failure.
+  </p>
+
+  <h3><span class="num">2.3</span>Redis's actual role</h3>
+  <p>
+    Redis is used for exactly one active thing right now: a <strong>lock during payroll runs</strong>
+    (<code>key_payroll_lock(period_id)</code>, 1-hour TTL) so two people can't trigger payroll for the same period
+    at once. Two other key builders exist in <code>redis_client.py</code> — a fingerprint-template cache key and a
+    punch-dedup lock key — but neither is actually called anywhere in the service code yet. They're scaffolding
+    for later, not bugs.
+  </p>
+
+  <h3><span class="num">2.4</span>Configuration</h3>
+  <p>
+    All secrets and environment-specific values come from <code>.env</code> via <code>config.py</code>
+    (<code>database_url</code>, <code>redis_url</code>, <code>secret_key</code>, <code>encryption_key</code>,
+    <code>app_env</code>, <code>app_debug</code>). <code>is_production</code> is just <code>app_env == "production"</code>
+    and it controls two things in <code>main.py</code>: whether <code>/docs</code> and <code>/redoc</code> are exposed,
+    and what CORS allows — more on that second one in <a href="#limitations">Known Limitations</a>, because it currently
+    has a real problem.
+  </p>
+
+  <hr class="section-rule">
+
+  <!-- PHASE 1 -->
+  <h2 id="phase1"><span class="num">03</span>Phase 1 — Employee Master &amp; Org Config</h2>
+  <p>
+    This phase is the "rules live in the database, not in code" foundation everything else depends on.
+    <code>modules/config</code> exposes CRUD for shifts, categories, sub-categories, departments, salary
+    components, and labour tier rates. <code>modules/employees</code> is the actual worker records.
+  </p>
+  <h3><span class="num">3.1</span>The category → sub-category → salary_type chain</h3>
+  <p>
+    Every employee belongs to a <code>category</code> (Labour / Maintenance / Staff) and a <code>sub_category</code>
+    that carries a <code>salary_type</code>: <code>tier</code>, <code>daily_flat</code>, or <code>monthly</code>.
+    This single field is what the payroll engine reads later to decide which of the three calculation paths to use —
+    it's the hinge the whole payroll logic turns on.
+  </p>
+  <p>
+    <code>_validate_refs()</code> in <code>employees/service.py</code> enforces consistency at creation time:
+    a <code>tier</code> or <code>daily_flat</code> employee must <em>not</em> have <code>monthly_salary</code> set,
+    and a <code>monthly</code> employee must have it. Get this validation wrong on a new employee and the payroll
+    engine will either silently use the wrong path or throw a confusing error a month later — this is the first
+    place to check if a new hire's payroll looks wrong.
+  </p>
+  <div class="files">
+    <div class="label">Files to know</div>
+    <ul>
+      <li><code>app/modules/config/router.py</code> / <code>service.py</code> — shifts, categories, departments, components, tier rates</li>
+      <li><code>app/modules/employees/router.py</code> / <code>service.py</code> — employee CRUD + validation</li>
+    </ul>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- PHASE 2 -->
+  <h2 id="phase2"><span class="num">04</span>Phase 2 — Fingerprint Enrollment</h2>
+  <p>
+    Fingerprint templates are stored encrypted, never in plain form. <code>enroll_fingerprint()</code> takes a
+    base64-encoded template from the request, decodes it, and re-encrypts it with <strong>Fernet</strong>
+    (symmetric encryption, key = <code>encryption_key</code> from <code>.env</code>) before it ever touches the
+    database. The API never returns the decrypted template back out — it's write-only from the API's perspective,
+    which is exactly right for biometric data.
+  </p>
+  <p>
+    One fingerprint row per <code>finger_index</code> per employee. Re-enrolling the same finger uses
+    <code>PATCH</code>, not a second <code>POST</code> — trying to enroll the same index twice via POST returns
+    a 409 conflict on purpose.
+  </p>
+  <div class="card warn">
+    <div class="label">Worth knowing</div>
+    If <code>encryption_key</code> is ever lost or rotated without a migration plan, every previously enrolled
+    fingerprint becomes undecryptable garbage — there's no recovery path coded for that. Treat this key with the
+    same care as the JWT signing secret.
+  </div>
+  <div class="files">
+    <div class="label">Files to know</div>
+    <ul><li><code>app/modules/employees/service.py</code> — <code>_get_fernet</code>, <code>_encrypt_template</code>, fingerprint functions</li></ul>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- PHASE 3 -->
+  <h2 id="phase3"><span class="num">05</span>Phase 3 — Devices &amp; ADMS Punch Ingestion</h2>
+  <p>
+    The BioMax device doesn't poll your server — it pushes. <code>adms_router</code> is mounted at <code>/iclock</code>
+    with <strong>no JWT auth</strong>, because the physical device can't carry a bearer token. It authenticates
+    itself purely by sending its serial number (<code>SN</code>) as a query parameter, matched against the
+    <code>devices</code> table.
+  </p>
+  <h3><span class="num">5.1</span>The two-call dance</h3>
+  <ul>
+    <li><strong>GET /iclock/cdata</strong> — device boot/heartbeat. Server looks up the device by SN, touches <code>last_seen_at</code>, and replies with an options string containing <code>ATTLOGStamp</code> — the timestamp of the last punch we already have. This is what stops the device from re-sending its entire punch history every time it reconnects.</li>
+    <li><strong>POST /iclock/cdata?table=ATTLOG</strong> — the actual punch data, plain-text, tab-separated lines like <code>ATTLOG&lt;uid&gt;&lt;datetime&gt;&lt;status&gt;&lt;verify&gt;</code>. Parsed by <code>_parse_attlog()</code>, one line per punch.</li>
+  </ul>
+  <h3><span class="num">5.2</span>How a punch becomes a row</h3>
+  <p>
+    For each parsed punch: the device's internal <code>uid</code> is resolved to an <code>employee_id</code> via
+    <code>device_user_id</code> (set once during enrollment). <code>status</code> maps to <code>in</code>/<code>out</code>
+    (0/3/4 → in, 1/2/5 → out). <code>verify</code> determines <code>matched</code> — only fingerprint or face verify
+    types count as matched; a password-based punch is stored but flagged unmatched. The insert uses
+    <code>ON CONFLICT (device_id, punched_at) DO NOTHING</code> as the dedup guard, so a device resending old logs
+    after a reconnect never creates duplicate rows.
+  </p>
+  <div class="card info">
+    <div class="label">Timezone, by design choice</div>
+    All punch timestamps from the device are treated as IST directly (<code>IST = UTC+5:30</code>, hardcoded in
+    <code>service.py</code>). This is intentional for now, not a bug — it's flagged in code comments as a future
+    org-level setting, deferred because there's currently only one mill in one timezone.
+  </div>
+  <div class="files">
+    <div class="label">Files to know</div>
+    <ul>
+      <li><code>app/modules/attendance/service.py</code> — <code>handle_device_register</code>, <code>handle_attlog</code>, <code>_parse_attlog</code></li>
+      <li><code>app/modules/devices/</code> — device CRUD</li>
+    </ul>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- PHASE 4 -->
+  <h2 id="phase4"><span class="num">06</span>Phase 4 — Attendance Engine &amp; Validation Gate</h2>
+  <p>
+    This is the most algorithmically dense part of the backend. <code>process_daily_attendance()</code> runs
+    per date, per active employee, and does six things in sequence:
+  </p>
+  <ol>
+    <li><strong>Computes a shift window.</strong> <code>_compute_shift_window()</code> turns the employee's assigned shift (start time, end time, whether it crosses midnight) into an actual datetime range for that date, with a <strong>±2 hour buffer</strong> on each side to catch early arrivals and late departures without bleeding into the next shift.</li>
+    <li><strong>Pulls matched punches inside that window.</strong></li>
+    <li><strong>Pairs them.</strong> <code>_pair_punches()</code> takes the <em>first</em> IN and the <em>last</em> OUT in the window — so extra punches in between (breaks, accidental double-taps) don't break the pairing, they just get noted as an anomaly later.</li>
+    <li><strong>Calculates <code>hours_worked</code></strong> from the gap between paired in/out, and derives <code>status</code>: <code>absent</code> if there are zero logs, <code>present</code> if hours clear half the shift's standard hours, <code>half_day</code> if below that. <strong>Important nuance:</strong> if only one side of the punch pair exists (IN with no OUT, or vice versa), status defaults to <code>present</code>, not <code>absent</code> — the reasoning is that a punch proves the person was physically there, so it's flagged as a data-quality exception for HR to verify rather than auto-marked absent.</li>
+    <li><strong>Calculates OT / undertime</strong> — but only for <code>hours_based</code> pay types (Maintenance, Staff). Labour and Trainee never get OT/undertime, full stop, regardless of hours worked.</li>
+    <li><strong>Detects exceptions</strong> via <code>_detect_exception()</code>, checked in priority order — first match wins: <code>leave_conflict</code> (leave exists but punches were still logged) → <code>missing_punch</code> → <code>odd_punch_count</code> (more than 2 punches that don't cleanly resolve to one IN/OUT pair) → <code>excessive_duration</code> (hours worked beyond shift length plus a 4-hour buffer).</li>
+  </ol>
+  <p>
+    The result is <strong>UPSERTed</strong> into <code>attendance_daily</code> — except rows that already have
+    <code>is_manual_override = TRUE</code>, which are silently skipped so re-running the engine never clobbers an
+    HR correction.
+  </p>
+
+  <h3><span class="num">6.1</span>The validation gate — enforced in the database, not the app</h3>
+  <p>
+    This is deliberate, and it's the strongest piece of "no hardcoded business logic" in the system: the rule that
+    blocks payroll while exceptions are unresolved lives as a <strong>Postgres trigger</strong>
+    (<code>009_attendance_validation.sql</code>), not as an <code>if</code> statement in Python. Every flagged
+    record sets <code>review_status = 'flagged'</code>. When a <code>payroll_periods</code> row tries to transition
+    <code>draft → processing</code>, <code>trigger_block_payroll_processing()</code> fires automatically and counts
+    flagged rows for that org/month/year via <code>fn_attendance_exception_count()</code> — if the count is above
+    zero, the <code>UPDATE</code> itself fails with a Postgres exception, no matter what code path tried to make it
+    happen. Even a stray manual SQL update against the database would still be blocked.
+  </p>
+  <div class="card ok">
+    <div class="label">Why this matters</div>
+    Even if a future bug in the FastAPI app skips the application-level exception check in
+    <code>run_payroll()</code>, the database itself still refuses to let the period move to <code>processing</code>.
+    That's two independent layers protecting the same invariant — this is the gate actually doing its job, not just
+    a UI warning.
+  </div>
+  <p>
+    HR resolves a flagged record one of two ways: <strong>Resolve</strong> (<code>PATCH /attendance/daily/{id}/resolve</code>)
+    just clears the flag without touching the underlying data — for when the anomaly is actually fine (e.g. planned
+    OT). <strong>Override</strong> (<code>PATCH /attendance/daily/{id}</code>) lets HR rewrite the status/hours/OT
+    directly, sets <code>is_manual_override = TRUE</code>, and requires a <code>override_reason</code>.
+  </p>
+  <div class="files">
+    <div class="label">Files to know</div>
+    <ul>
+      <li><code>app/modules/attendance/service.py</code> — <code>process_daily_attendance</code>, <code>_detect_exception</code>, <code>override_daily</code>, <code>resolve_exception</code></li>
+      <li><code>db/migrations/009_attendance_validation.sql</code> — the actual gate, lives in Postgres</li>
+      <li><code>app/modules/attendance/router.py</code> — also defines <code>leave_router</code> for leave CRUD</li>
+    </ul>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- PHASE 5/6 -->
+  <h2 id="phase56"><span class="num">07</span>Phase 5 &amp; 6 — Payroll Engine</h2>
+  <p>
+    <code>engine.py</code> is intentionally pure — no DB calls, no async, just <code>Decimal</code> math — which
+    makes it the easiest part of the whole backend to unit-test and to trust. <code>service.py</code> is the
+    orchestration layer that fetches data and calls into it.
+  </p>
+
+  <h3><span class="num">7.1</span>The three salary paths</h3>
+  <table>
+    <tr><th>Path</th><th>Who</th><th>Formula</th><th>OT/UT?</th></tr>
+    <tr>
+      <td><strong>A — tier</strong></td><td>Labour (Skilled)</td>
+      <td><code>gross = daily_rate × days_present</code><br>daily_rate looked up by which bracket total days_present falls into</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><strong>B — daily_flat</strong></td><td>Trainee</td>
+      <td><code>gross = flat_daily_rate × days_present</code></td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><strong>C — monthly</strong></td><td>Maintenance, Staff</td>
+      <td><code>per_day = salary / 30</code><br><code>per_hour = per_day / standard_hours</code><br><code>gross = (per_day × days) + (per_hour × OT) − (per_hour × UT)</code></td>
+      <td>Yes</td>
+    </tr>
+  </table>
+  <p>
+    Note: division by 30 is fixed regardless of how many days are actually in that calendar month — this is a
+    deliberate industry-standard simplification, not a bug.
+  </p>
+
+  <h3><span class="num">7.2</span>Salary components — the configurable layer on top of gross</h3>
+  <p>
+    Once <code>gross</code> is known, <code>apply_components()</code> walks the org's configured
+    <code>salary_components</code> list and computes each one:
+  </p>
+  <ul>
+    <li><code>percent_of_gross</code> — straight percentage of gross (e.g. Basic = 50%, DA = 10%).</li>
+    <li><code>percent_of_component</code> — percentage of a previously computed component, referenced by <code>ref_component_id</code> (this is how EPF = 12% of T Basic works — T Basic must be computed before EPF in <code>calculation_order</code> for this to resolve correctly).</li>
+    <li><code>fixed</code> — flat rupee value.</li>
+  </ul>
+  <div class="card warn">
+    <div class="label">Worth knowing — the EPF skip condition</div>
+    Inside the loop: <code>if comp_type == "deduction" and not epf_enrolled: continue</code>. Today this is fine
+    because EPF is the only deduction-type component configured. But read literally, it skips <em>every</em>
+    deduction-type component for a non-enrolled employee, not just EPF specifically. If a second deduction
+    component is ever added (e.g. a standing loan recovery line) that should apply regardless of EPF status, it
+    would silently be skipped too for non-enrolled employees. Worth a closer look before adding any new deduction
+    component.
+  </div>
+
+  <h3><span class="num">7.3</span>Running payroll, step by step</h3>
+  <ol>
+    <li>Period must be <code>draft</code> or <code>processing</code> — anything else is rejected.</li>
+    <li>Unresolved attendance exceptions for that month are checked at the application level too (in addition to the DB trigger) — any unresolved count blocks the run with a 400.</li>
+    <li>A Redis lock is acquired on the period (<code>payroll:lock:{period_id}</code>) so two simultaneous run requests can't race each other; a second request gets a 409.</li>
+    <li>If still <code>draft</code>, the period flips to <code>processing</code> — this is the exact moment the DB trigger gate from Phase 4 fires.</li>
+    <li>Every active employee is processed independently. <strong>If one employee fails</strong> (e.g. no matching tier bracket found for their days_present), it's caught, logged into the run's <code>errors</code> list, and the loop <em>continues</em> — one bad record doesn't abort payroll for everyone else. Check the <code>errors</code> array in the run response after every run, not just the success count.</li>
+    <li>For each employee: gross is calculated via the correct path, components are applied, old component rows are deleted and replaced (this is what makes re-running idempotent), and any existing manual deductions are re-summed into <code>total_deductions</code> and <code>net_pay</code>.</li>
+    <li>The Redis lock is released in a <code>finally</code> block — even on error, the lock won't get stuck.</li>
+  </ol>
+  <p>
+    Re-running payroll for the same period (e.g. after fixing an attendance override) is safe — it recalculates
+    everything from scratch but preserves manually entered deductions, because those live in a separate
+    <code>payroll_deductions</code> table that the engine doesn't touch directly, only re-sums.
+  </p>
+
+  <h3><span class="num">7.4</span>Status workflow</h3>
+  <p>
+    <code>draft → processing → approved → paid</code> — strictly one-directional, enforced in
+    <code>_VALID_TRANSITIONS</code> in <code>service.py</code>. Only <code>draft → processing</code> has an
+    automated DB-level gate; <code>processing → approved</code> and <code>approved → paid</code> are pure human
+    judgment calls with no automated check beyond "is this the legal next step." Deductions can only be
+    added/removed while a period is <code>draft</code> or <code>processing</code> — once <code>approved</code>,
+    the numbers are meant to be frozen.
+  </p>
+  <div class="files">
+    <div class="label">Files to know</div>
+    <ul>
+      <li><code>app/modules/payroll/engine.py</code> — pure calculation, the actual math</li>
+      <li><code>app/modules/payroll/service.py</code> — <code>run_payroll</code>, <code>_process_single_employee</code>, deduction + status logic</li>
+      <li><code>app/modules/payroll/router.py</code> — endpoint surface</li>
+    </ul>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- FRONTEND -->
+  <h2 id="frontend"><span class="num">08</span>Frontend Architecture</h2>
+  <p>
+    Vite + React, plain JavaScript (no TypeScript). <code>App.jsx</code> wraps every authenticated route in
+    <code>ProtectedRoute</code> + a shared <code>Layout</code> shell (sidebar + page chrome). Routes mirror the
+    backend modules directly: <code>/employees</code>, <code>/attendance/process</code>,
+    <code>/attendance/exceptions</code>, <code>/payroll/periods/:periodId</code>, etc.
+  </p>
+
+  <h3><span class="num">8.1</span>The two-client split — and a gotcha bigger than documented</h3>
+  <p>
+    <code>src/api/client.js</code> exports two clients: <code>api</code> prepends <code>/api/v1</code>;
+    <code>raw</code> calls the path exactly as given, no prefix. Looking at how <code>main.py</code> actually
+    mounts routers:
+  </p>
+  <table>
+    <tr><th>Router</th><th>Mount</th><th>Frontend client to use</th></tr>
+    <tr><td><code>auth_router</code></td><td><code>/api/v1/auth/*</code></td><td><code>api</code></td></tr>
+    <tr><td><code>config_router</code></td><td><code>/api/v1/config/*</code></td><td><code>api</code></td></tr>
+    <tr><td><code>employees_router</code></td><td><code>/api/v1/employees/*</code></td><td><code>api</code></td></tr>
+    <tr><td><code>payroll_router</code></td><td><code>/api/v1/payroll/*</code></td><td><code>api</code></td></tr>
+    <tr><td><code>leave_router</code></td><td><code>/api/v1/leave/*</code></td><td><code>api</code></td></tr>
+    <tr><td><code>attendance_router</code></td><td><code>/attendance/*</code> (no prefix)</td><td><code>raw</code></td></tr>
+    <tr><td><code>devices_router</code></td><td><code>/devices/*</code> (no prefix)</td><td><code>raw</code></td></tr>
+    <tr><td><code>adms_router</code></td><td><code>/iclock/*</code> (no prefix, no auth)</td><td>n/a — device only</td></tr>
+  </table>
+  <div class="card warn">
+    <div class="label">Correction worth flagging</div>
+    <code>devices_router</code> has no <code>/api/v1</code> prefix — same situation as attendance. If any future
+    frontend page calls device endpoints (e.g. a device management screen) through the <code>api</code> client by
+    habit, it will silently 404 because it'll try <code>/api/v1/devices</code> instead of <code>/devices</code>.
+    Same logic, easy to miss since attendance is the one everyone remembers.
+  </div>
+
+  <h3><span class="num">8.2</span>Auth on the frontend</h3>
+  <p>
+    <code>AuthContext.jsx</code> hydrates from <code>localStorage</code> on mount (token + cached user object),
+    calls <code>/api/v1/auth/login</code> directly with raw <code>fetch</code> (not through the client wrappers),
+    and stores <code>access_token</code> alongside a small <code>user_id</code>/<code>org_id</code>/<code>role</code>
+    object. There's no token refresh logic — when the 8-hour JWT expires, the next API call will fail with 401 and
+    the user needs to log in again. No silent refresh is currently wired up.
+  </p>
+
+  <h3><span class="num">8.3</span>How the trickiest pages actually work</h3>
+  <p>
+    <strong><code>AttendanceProcess.jsx</code></strong> has two independent halves on one page: a form that POSTs a
+    date range to <code>raw.post('/attendance/process', ...)</code> to trigger the engine, and a separate employee
+    picker that pulls that employee's <code>attendance_daily</code> rows to display. They don't talk to each other —
+    running the engine doesn't auto-refresh the daily viewer below it.
+  </p>
+  <p>
+    <strong><code>Exceptions.jsx</code></strong> is the HR triage queue — month/year selector calls
+    <code>raw.get('/attendance/exceptions?...')</code>, shows the flagged count prominently (turns green at zero,
+    which is the visual cue that payroll can proceed), and offers Resolve or Override per row, matching the two
+    backend paths described in Phase 4.
+  </p>
+  <p>
+    <strong><code>PeriodDetail.jsx</code></strong> is where the whole payroll workflow converges: it conditionally
+    shows Run / Approve / Mark Paid buttons based on <code>period.status</code>, calls
+    <code>api.post('/payroll/periods/{id}/run')</code> for the engine, and recomputes summary totals
+    (gross/deductions/net) client-side from the records list rather than trusting a separate summary endpoint —
+    so if those numbers ever look off, check that all pages of records were actually loaded, since this sums
+    only the currently-fetched page, not the full period if pagination is in play.
+  </p>
+
+  <hr class="section-rule">
+
+  <!-- WALKTHROUGH -->
+  <h2 id="walkthrough"><span class="num">09</span>One Full Monthly Cycle, End to End</h2>
+  <ol>
+    <li>Worker punches the BioMax scanner. Device eventually pushes the punch via <code>POST /iclock/cdata</code>; it lands in <code>attendance_logs</code>.</li>
+    <li>HR opens <strong>Attendance Processing</strong>, picks the month's date range, clicks Process. <code>process_daily_attendance()</code> runs for every employee/date, writing <code>attendance_daily</code> rows and flagging anomalies.</li>
+    <li>HR opens <strong>Exceptions</strong>, works through the flagged list — Resolve where the anomaly is acceptable, Override where the data needs correcting — until the flagged count hits zero.</li>
+    <li>HR creates a <strong>Payroll Period</strong> for that month (if not already created) and clicks <strong>Run Payroll</strong> on the Period Detail page.</li>
+    <li>The DB trigger silently confirms zero flagged exceptions as the period flips to <code>processing</code>; the engine calculates gross, components, and net pay for every active employee.</li>
+    <li>HR reviews records, adds any manual deductions (advances, gifts, custom) per employee as needed — each addition recalculates that employee's <code>net_pay</code> immediately.</li>
+    <li>HR clicks <strong>Approve</strong> (<code>processing → approved</code>) once satisfied — deductions can no longer be added or removed past this point.</li>
+    <li>Payment is disbursed outside the system (bank/cash per employee's configured <code>payment_mode</code>), then HR clicks <strong>Mark Paid</strong> (<code>approved → paid</code>) to close the period.</li>
+    <li>Individual <strong>Payslips</strong> are viewable any time after the run via the record/employee detail route.</li>
+  </ol>
+
+  <hr class="section-rule">
+
+  <!-- ROUTE MAP -->
+  <h2 id="routemap"><span class="num">10</span>Route Map</h2>
+  <table>
+    <tr><th>Method &amp; Path</th><th>Auth</th><th>Purpose</th></tr>
+    <tr><td><code>POST /api/v1/auth/login</code></td><td>none</td><td>Returns JWT + role + org_id</td></tr>
+    <tr><td><code>GET/POST/PATCH /api/v1/config/*</code></td><td>HR / Admin</td><td>Shifts, categories, departments, components, tier rates</td></tr>
+    <tr><td><code>GET/POST/PATCH/DELETE /api/v1/employees</code></td><td>HR / Admin</td><td>Employee master CRUD</td></tr>
+    <tr><td><code>*/api/v1/employees/{id}/fingerprints</code></td><td>HR / Admin</td><td>Fingerprint enroll/re-enroll/deactivate</td></tr>
+    <tr><td><code>GET/POST/PATCH /devices</code></td><td>HR / Admin</td><td>Device registry — no prefix, use <code>raw</code></td></tr>
+    <tr><td><code>GET/POST /iclock/cdata</code></td><td>none (device SN)</td><td>ADMS register + punch ingestion</td></tr>
+    <tr><td><code>GET /attendance/logs/{employee_id}</code></td><td>HR</td><td>Raw punch logs</td></tr>
+    <tr><td><code>GET /attendance/logs/unmatched</code></td><td>HR</td><td>Punches that couldn't resolve to an employee</td></tr>
+    <tr><td><code>POST /attendance/process</code></td><td>HR</td><td>Trigger the daily processing engine</td></tr>
+    <tr><td><code>GET /attendance/daily/{employee_id}</code></td><td>HR</td><td>Processed daily records for one employee</td></tr>
+    <tr><td><code>PATCH /attendance/daily/{id}</code></td><td>HR</td><td>Manual override</td></tr>
+    <tr><td><code>PATCH /attendance/daily/{id}/resolve</code></td><td>HR</td><td>Clear exception flag, no data change</td></tr>
+    <tr><td><code>GET /attendance/exceptions</code></td><td>HR</td><td>Monthly flagged-record summary + list</td></tr>
+    <tr><td><code>*/api/v1/leave</code></td><td>HR</td><td>Leave application CRUD (record only, no approval flow)</td></tr>
+    <tr><td><code>POST /api/v1/payroll/periods</code></td><td>HR</td><td>Create a payroll period</td></tr>
+    <tr><td><code>PATCH /api/v1/payroll/periods/{id}/status</code></td><td>HR</td><td>Advance workflow status</td></tr>
+    <tr><td><code>POST /api/v1/payroll/periods/{id}/run</code></td><td>HR</td><td>Run the payroll engine</td></tr>
+    <tr><td><code>GET /api/v1/payroll/periods/{id}/records</code></td><td>HR</td><td>Paginated payroll records</td></tr>
+    <tr><td><code>GET .../records/{employee_id}</code></td><td>HR</td><td>Full payslip</td></tr>
+    <tr><td><code>POST/DELETE .../deductions</code></td><td>HR</td><td>Manual deduction management</td></tr>
+    <tr><td><code>GET /health</code></td><td>none</td><td>Liveness check</td></tr>
+  </table>
+
+  <hr class="section-rule">
+
+  <!-- DB MAP -->
+  <h2 id="dbmap"><span class="num">11</span>Database Table Map</h2>
+  <p>18 tables, all org-scoped via <code>org_id</code>. Grouped by what they belong to:</p>
+  <table>
+    <tr><th>Group</th><th>Tables</th><th>Notes</th></tr>
+    <tr><td>Tenancy &amp; Auth</td><td><code>organisations</code>, <code>users</code></td><td>One org currently — STC Cotyarn</td></tr>
+    <tr><td>Org Config</td><td><code>shifts</code>, <code>categories</code>, <code>sub_categories</code>, <code>departments</code>, <code>salary_components</code>, <code>labour_tier_rates</code></td><td>The config-driven layer Phase 1 set up</td></tr>
+    <tr><td>People</td><td><code>employees</code>, <code>employee_fingerprints</code></td><td>Fernet-encrypted templates</td></tr>
+    <tr><td>Attendance pipeline</td><td><code>devices</code>, <code>attendance_logs</code>, <code>attendance_daily</code>, <code>leave_applications</code></td><td><code>attendance_daily</code> carries the <code>review_status</code>/<code>exception_type</code> columns added in migration 009</td></tr>
+    <tr><td>Payroll pipeline</td><td><code>payroll_periods</code>, <code>payroll_records</code>, <code>payroll_component_values</code>, <code>payroll_deductions</code></td><td>Component values are snapshotted per run — historical payslips don't shift if config changes later</td></tr>
+  </table>
+
+  <hr class="section-rule">
+
+  <!-- TROUBLESHOOTING -->
+  <h2 id="troubleshoot"><span class="num">12</span>Where To Look When Something Breaks</h2>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Where to look</th></tr>
+    <tr><td>Device stops sending punches after a restart</td><td>Wrong <code>ATTLOGStamp</code> returned, or device SN not registered / inactive</td><td><code>handle_device_register</code>, check <code>devices.is_active</code></td></tr>
+    <tr><td>Punches not appearing in <code>attendance_logs</code></td><td>UID on device not mapped to any employee's <code>device_user_id</code>, or device inactive</td><td><code>EMPLOYEE_BY_DEVICE_UID</code> query, employee's <code>device_user_id</code> field</td></tr>
+    <tr><td>Employee shows absent despite punching in</td><td>Punch fell outside the ±2hr shift window, or employee's assigned shift is wrong</td><td><code>_compute_shift_window</code>, employee's <code>shift_id</code></td></tr>
+    <tr><td>Can't move period <code>draft → processing</code></td><td>Unresolved attendance exceptions (this is the gate working as intended)</td><td><code>GET /attendance/exceptions</code> for that month/year</td></tr>
+    <tr><td>One employee missing from a payroll run / shows in <code>errors</code></td><td>Usually a tier-rate lookup miss (no bracket matches their days_present for their department)</td><td><code>labour_tier_rates</code> config for that department</td></tr>
+    <tr><td>Payroll numbers look right but a deduction-type component vanished for someone</td><td>The EPF-skip condition in <code>apply_components</code> — see Phase 5/6 callout</td><td><code>engine.py</code>, employee's <code>epf_enrolled</code> flag</td></tr>
+    <tr><td>Frontend API calls all fail with CORS errors after deploying separately from backend</td><td>The production CORS configuration — see Known Limitations below</td><td><code>main.py</code> CORS middleware block</td></tr>
+    <tr><td>"Internal server error" with no detail</td><td>Unhandled exception, swallowed by the global handler in production mode</td><td>Server logs, or temporarily set <code>app_debug=true</code> on staging to see the real traceback</td></tr>
+    <tr><td>Login works but every other request returns 401</td><td>JWT expired (8hr) or user was deactivated mid-session</td><td>Re-login; check <code>users.is_active</code></td></tr>
+  </table>
+
+  <hr class="section-rule">
+
+  <!-- LIMITATIONS -->
+  <h2 id="limitations"><span class="num">13</span>Known Limitations &amp; Ideas To Improve</h2>
+  <p>These came directly from reading the code, not speculation — ranked roughly by how much they matter.</p>
+
+  <div class="card danger">
+    <div class="label">Likely real production issue — CORS</div>
+    In <code>main.py</code>: <code>allow_origins=["*"] if not settings.is_production else []</code>. Read carefully —
+    in production this sets <code>allow_origins</code> to an <strong>empty list</strong>, which blocks every
+    cross-origin request, not just untrusted ones. If the frontend is ever deployed on a different domain/port than
+    the backend (which is the normal setup — e.g. frontend on Vercel, backend on Railway), every authenticated
+    request from the browser will be rejected by CORS in production. Fix before going live: set
+    <code>allow_origins</code> to the actual frontend's production URL, not an empty list.
+  </div>
+
+  <div class="card warn">
+    <div class="label">EPF-skip condition is broader than its name suggests</div>
+    Covered in detail in Phase 5/6 — <code>apply_components()</code> skips all deduction-type components, not just
+    EPF, for non-enrolled employees. Fine today since EPF is the only one configured; worth revisiting before
+    adding a second deduction component.
+  </div>
+
+  <div class="card info">
+    <div class="label">Intentionally deferred, not bugs</div>
+    <ul style="margin:0;">
+      <li><code>HALF_DAY_THRESHOLD_PERCENT</code> (50%) and the IST timezone are hardcoded in <code>attendance/service.py</code> — both are explicitly flagged in code comments as future configurable settings, deferred on purpose since there's one org in one timezone right now.</li>
+      <li><code>exception_type</code>'s database constraint allows <code>shift_mismatch</code> and <code>device_gap</code> as valid values, but <code>_detect_exception()</code> never actually produces them yet — the schema is ahead of the detection logic. Room to extend later without a migration.</li>
+      <li>Redis fingerprint-cache and punch-dedup-lock key builders exist in <code>redis_client.py</code> but aren't called anywhere — scaffolding for a future optimization, not active.</li>
+    </ul>
+  </div>
+
+  <div class="card warn">
+    <div class="label">No token refresh on the frontend</div>
+    When the 8-hour JWT expires mid-session, the user just starts getting 401s with no automatic re-login flow or
+    warning toast. For an HR shift-length token this is probably fine in practice, but a low-effort improvement
+    would be a friendly "session expired, please log in again" redirect instead of silent failures.
+  </div>
+
+  <div class="card info">
+    <div class="label">Frontend totals are computed from the loaded page only</div>
+    <code>PeriodDetail.jsx</code> sums gross/deductions/net from <code>records</code> in component state — if a
+    period has more than 50 employees and pagination kicks in, the summary cards only reflect the currently loaded
+    page, not the full period. Worth a dedicated summary endpoint if employee count grows past one page.
+  </div>
+
+  <div class="card ok">
+    <div class="label">What's already done well, worth preserving</div>
+    <ul style="margin:0;">
+      <li>The validation gate living as a DB trigger rather than app logic — genuinely hard to accidentally bypass.</li>
+      <li>Idempotent payroll re-runs that preserve manual deductions — lets HR fix a mistake and re-run without fear.</li>
+      <li>Per-employee error isolation during a payroll run — one bad record doesn't take down the whole month.</li>
+      <li>Write-only fingerprint templates, encrypted before they ever reach the DB.</li>
+    </ul>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- GLOSSARY -->
+  <h2 id="glossary"><span class="num">14</span>Glossary</h2>
+  <table>
+    <tr><th>Term</th><th>Meaning in this codebase</th></tr>
+    <tr><td><strong>ADMS</strong></td><td>The push protocol the BioMax device uses to send punch data to your server over HTTP, instead of you polling the device.</td></tr>
+    <tr><td><strong>Fernet</strong></td><td>A symmetric encryption scheme (from Python's <code>cryptography</code> library) used to encrypt fingerprint templates at rest.</td></tr>
+    <tr><td><strong>JWT</strong></td><td>JSON Web Token — the signed, stateless credential issued at login, carrying user_id/org_id/role.</td></tr>
+    <tr><td><strong>asyncpg</strong></td><td>The async Postgres driver used directly (no ORM) — all SQL is raw, parameterized strings in <code>queries.py</code> files.</td></tr>
+    <tr><td><strong>UPSERT</strong></td><td><code>INSERT ... ON CONFLICT ... DO UPDATE</code> — insert a row, or update it if one already exists for that unique key. Used heavily so re-running processing/payroll is safe.</td></tr>
+    <tr><td><strong>Idempotent</strong></td><td>Running the same operation twice produces the same end result as running it once — true of both the attendance processor and the payroll engine by design.</td></tr>
+    <tr><td><strong>DB trigger</strong></td><td>A function Postgres runs automatically on an <code>INSERT</code>/<code>UPDATE</code> — used here to physically block the payroll status transition, independent of the app code.</td></tr>
+    <tr><td><strong>Redis lock</strong></td><td>A short-lived key set with <code>NX</code> (only-if-not-exists) used to prevent two concurrent payroll runs on the same period.</td></tr>
+    <tr><td><strong>Path A/B/C</strong></td><td>The three payroll calculation routes — tier-based, flat daily rate, and monthly-with-OT — chosen per employee by their sub-category's <code>salary_type</code>.</td></tr>
+  </table>
+
+  <footer>
+    Written from a direct read of the actual backend and frontend code as of this conversation — file names,
+    function names, and behaviors referenced here are real, not paraphrased from the original phase plan. If the
+    code changes meaningfully later, this guide will start to drift from reality the same way the earlier phase
+    handoff doc did — worth a refresh after major changes to attendance or payroll logic.
+  </footer>
+
+</div>
+</body>
+</html>

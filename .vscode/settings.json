@@ -1,0 +1,15 @@
+{
+  "python.defaultInterpreterPath": "c:/Users/agraw/Payroll Software/backend/venv/Scripts/python.exe",
+  "python.pythonPath": "c:/Users/agraw/Payroll Software/backend/venv/Scripts/python.exe",
+  "python.analysis.extraPaths": [
+    "c:/Users/agraw/Payroll Software/backend"
+  ],
+  "python.analysis.venvPath": "c:/Users/agraw/Payroll Software/backend",
+  "python.analysis.venv": "venv",
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "pylance.venvPath": "c:/Users/agraw/Payroll Software/backend",
+  "[python]": {
+    "editor.formatOnSave": true
+  }
+}
