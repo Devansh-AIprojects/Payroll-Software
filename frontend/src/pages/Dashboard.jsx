@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api, { raw } from '../api/client';
+import api from '../api/client';
 import StatusBadge from '../components/StatusBadge';
 
 export default function Dashboard() {
@@ -23,7 +23,7 @@ export default function Dashboard() {
       const [periodsRes, employeesRes, excRes] = await Promise.allSettled([
         api.get('/payroll/periods?page=1&page_size=1'),
         api.get('/employees?page=1&page_size=1&is_active=true'),
-        raw.get(`/attendance/exceptions?year=${now.getFullYear()}&month=${now.getMonth() + 1}`),
+        api.get(`/attendance/exceptions?year=${now.getFullYear()}&month=${now.getMonth() + 1}`),
       ]);
 
       const periods = periodsRes.status === 'fulfilled' ? (periodsRes.value.data || []) : [];

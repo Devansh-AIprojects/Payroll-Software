@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api, { raw } from '../../api/client';
+import api from '../../api/client';
 import DataTable from '../../components/DataTable';
 import StatusBadge from '../../components/StatusBadge';
 import { Spinner } from '../../components/Loader';
@@ -33,7 +33,7 @@ export default function AttendanceProcess() {
     setError('');
     setResult(null);
     try {
-      const res = await raw.post('/attendance/process', {
+      const res = await api.post('/attendance/process', {
         from_date: fromDate,
         to_date: toDate,
       });
@@ -49,7 +49,7 @@ export default function AttendanceProcess() {
     if (!selectedEmp) return;
     setDailyLoading(true);
     try {
-      const res = await raw.get(
+      const res = await api.get(
         `/attendance/daily/${selectedEmp}?from_date=${fromDate}&to_date=${toDate}`
       );
       setDailyRecords(res.data || []);
