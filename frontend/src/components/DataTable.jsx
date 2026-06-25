@@ -1,4 +1,4 @@
-export default function DataTable({ columns, data, onRowClick, emptyMessage = 'No data found' }) {
+export default function DataTable({ columns, data, onRowClick, emptyMessage = 'No data found', summaryRow }) {
   if (!data || data.length === 0) {
     return (
       <div className="empty-state">
@@ -37,6 +37,20 @@ export default function DataTable({ columns, data, onRowClick, emptyMessage = 'N
             </tr>
           ))}
         </tbody>
+        {summaryRow && (
+          <tfoot>
+            <tr style={{ background: 'rgba(255,255,255,0.06)', fontWeight: 600, borderTop: '2px solid rgba(255,255,255,0.12)' }}>
+              {columns.map((col) => (
+                <td
+                  key={col.key}
+                  className={col.align === 'right' ? 'col-right' : ''}
+                >
+                  {summaryRow[col.key] ?? ''}
+                </td>
+              ))}
+            </tr>
+          </tfoot>
+        )}
       </table>
     </div>
   );

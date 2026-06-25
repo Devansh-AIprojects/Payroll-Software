@@ -81,6 +81,19 @@ export default function Periods() {
       label: 'Paid',
       render: (val) => val ? new Date(val).toLocaleDateString('en-IN') : '—',
     },
+    {
+      key: 'id',
+      label: '',
+      render: (val, row) =>
+        (row.status === 'approved' || row.status === 'paid') ? (
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={(e) => { e.stopPropagation(); navigate(`/payroll/periods/${val}/sheet`); }}
+          >
+            Salary Sheet
+          </button>
+        ) : null,
+    },
   ];
 
   if (loading) return <Spinner />;

@@ -101,3 +101,25 @@ class RunResponse(BaseModel):
     employees_processed: int
     records_written: int
     errors: list[str] = []
+
+
+# ── Salary sheet ─────────────────────────────────────────────────────────────
+
+class SalarySheetRow(BaseModel):
+    sr_no: int
+    employee_id: str
+    employee_code: str
+    employee_name: str
+    gender: Optional[str] = None
+    monthly_salary: Optional[float] = None   # None for Labour/Trainee → frontend shows "—"
+    per_day: Optional[float] = None
+    days_present: float
+    gross: float
+    basic: Optional[float] = None
+    da: Optional[float] = None
+    t_basic: Optional[float] = None
+    allowances: Optional[float] = None
+    epf: Optional[float] = None
+    total_deductions: float
+    net_pay: float
+    payment_mode: str

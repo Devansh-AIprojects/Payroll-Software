@@ -3,9 +3,12 @@ Pure calculation functions for the payroll engine.
 No DB I/O, no async — just math on Decimal values.
 
 Three salary paths:
-  Path A — tier (Labour Skilled):  gross = daily_rate × days_present
+  Path A — tier (Labour Skilled):  gross = (daily_rate × days) + (per_hr × OT) - (per_hr × UT)
   Path B — daily_flat (Trainee):   gross = flat_daily_rate × days_present
   Path C — monthly (Maint/Staff):  gross = (salary/30 × days) + (per_hr × OT) - (per_hr × UT)
+
+OT/undertime per-hour rate is always derived from the BASE rate excluding any
+jobber allowance, divided by the employee's shift hours (8h Staff, 12h Labour).
 """
 
 from decimal import Decimal, ROUND_HALF_UP
@@ -21,13 +24,33 @@ TWO_DP = Decimal("0.01")
 
 # ── Path A — Tier (Labour Skilled) ────────────────────────────────────────────
 
-def calc_path_a_tier(days_present: Decimal, daily_rate: Decimal) -> Decimal:
+def calc_path_a_tier(
+    days_present: Decimal,
+    daily_rate: Decimal,
+    ot_base_rate: Decimal,
+    ot_hours: Decimal,
+    undertime_hours: Decimal,
+    standard_hours: Decimal,
+) -> Decimal:
     """
-    Path A: gross = daily_rate × days_present.
+    Path A:
+      day_pay  = daily_rate × days_present   (daily_rate includes jobber allowance)
+      per_hour = ot_base_rate / standard_hours
+                 (ot_base_rate is the bare tier rate — jobber EXCLUDED)
+      gross    = day_pay + (per_hour × ot_hours) - (per_hour × undertime_hours)
+
     The daily_rate is looked up from labour_tier_rates based on which tier
     the employee's total days_present falls into for the month.
     """
-    return (daily_rate * days_present).quantize(TWO_DP, rounding=ROUND_HALF_UP)
+    per_hour = ot_base_rate / standard_hours if standard_hours > 0 else Decimal("0")
+
+    gross = (
+        (daily_rate * days_present)
+        + (per_hour * ot_hours)
+        - (per_hour * undertime_hours)
+    )
+
+    return gross.quantize(TWO_DP, rounding=ROUND_HALF_UP)
 
 
 # ── Path B — Daily Flat (Trainee) ─────────────────────────────────────────────

@@ -33,6 +33,16 @@ wheels/
 .DS_Store
 Thumbs.db
 
+# Local notes / scratch docs — not code, not deployed. Keep local only.
+KNOWN_ISSUES.md
+FIX_VERCEL_REWRITES.md
+CHAT_NOTES_vercel_rewrites.md
+
+# Local dev/one-off scripts — not part of the app, not deployed.
+backend/cleanup.py
+backend/schema_check.py
+backend/seed_excel.py
+
 # Frontend (Vite/React)
 dist/
 dist-ssr/

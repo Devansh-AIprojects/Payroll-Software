@@ -11,7 +11,7 @@ from app.modules.payroll.schemas import (
     PeriodCreate, PeriodResponse, PeriodStatusUpdate,
     DeductionCreate, DeductionResponse,
     PayrollRecordResponse, PayslipResponse,
-    RunResponse,
+    RunResponse, SalarySheetRow,
 )
 
 router = APIRouter(prefix="/payroll", tags=["payroll"])
@@ -139,6 +139,22 @@ async def get_payslip(
     """Full payslip for one employee: record + component breakdown + deductions."""
     async with get_connection() as conn:
         data = await service.get_payslip(conn, user.org_id, period_id, employee_id)
+    return APIResponse(data=data)
+
+
+# ── Salary sheet ─────────────────────────────────────────────────────────────
+
+@router.get(
+    "/periods/{period_id}/sheet",
+    response_model=APIResponse[list[SalarySheetRow]],
+)
+async def get_salary_sheet(
+    period_id: str,
+    user: AuthUser = require_hr,
+):
+    """Salary sheet for a period — all employees with component breakdown."""
+    async with get_connection() as conn:
+        data = await service.get_salary_sheet(conn, user.org_id, period_id)
     return APIResponse(data=data)
 
 

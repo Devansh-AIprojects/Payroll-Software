@@ -13,22 +13,25 @@ export default function Employees() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filterActive, setFilterActive] = useState(true);
+  const [categoryFilter, setCategoryFilter] = useState(null); // null = All
+  const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
+    api.get('/config/categories').then((res) => setCategories(res.data || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     loadEmployees();
-  }, [page, filterActive]);
+  }, [page, filterActive, categoryFilter]);
 
   async function loadEmployees() {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams({
-        page,
-        page_size: 50,
-        is_active: filterActive,
-      });
+      const params = new URLSearchParams({ page, page_size: 50, is_active: filterActive });
+      if (categoryFilter) params.set('category_id', categoryFilter);
       const res = await api.get(`/employees?${params}`);
       setEmployees(res.data || []);
       setTotal(res.total || 0);
@@ -37,6 +40,11 @@ export default function Employees() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleCategoryFilter(id) {
+    setCategoryFilter(id);
+    setPage(1);
   }
 
   const filtered = search
@@ -116,6 +124,27 @@ export default function Employees() {
         </div>
         <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ New Employee</button>
       </div>
+
+      {/* Category tabs */}
+      {categories.length > 0 && (
+        <div className="flex gap-2" style={{ marginBottom: 'var(--space-4)' }}>
+          <button
+            className={`btn btn-sm ${categoryFilter === null ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => handleCategoryFilter(null)}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              className={`btn btn-sm ${categoryFilter === cat.id ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => handleCategoryFilter(cat.id)}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-4 items-center" style={{ marginBottom: 'var(--space-6)' }}>

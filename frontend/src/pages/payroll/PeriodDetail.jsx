@@ -88,16 +88,16 @@ export default function PeriodDetail() {
     { key: 'employee_code', label: 'Code' },
     { key: 'employee_name', label: 'Employee' },
     {
-      key: 'days_present',
-      label: 'Days',
-      align: 'right',
-      render: (val) => val,
-    },
-    {
       key: 'daily_rate_applied',
       label: 'Rate',
       align: 'right',
       render: (val) => val ? fmt(val) : '—',
+    },
+    {
+      key: 'days_present',
+      label: 'Days',
+      align: 'right',
+      render: (val) => val,
     },
     {
       key: 'ot_hours',
@@ -113,7 +113,7 @@ export default function PeriodDetail() {
     },
     {
       key: 'total_deductions',
-      label: 'Deductions',
+      label: 'EPF',
       align: 'right',
       render: (val) => fmt(val),
     },
@@ -148,6 +148,19 @@ export default function PeriodDetail() {
   const totalGross = records.reduce((sum, r) => sum + (r.gross || 0), 0);
   const totalDeductions = records.reduce((sum, r) => sum + (r.total_deductions || 0), 0);
   const totalNet = records.reduce((sum, r) => sum + (r.net_pay || 0), 0);
+  const totalDays = records.reduce((sum, r) => sum + (r.days_present || 0), 0);
+
+  const summaryRow = records.length > 0 ? {
+    employee_code: '',
+    employee_name: 'TOTAL',
+    daily_rate_applied: '',
+    days_present: totalDays,
+    ot_hours: '',
+    gross: fmt(totalGross),
+    total_deductions: fmt(totalDeductions),
+    net_pay: fmt(totalNet),
+    payment_mode: '',
+  } : null;
 
   return (
     <div className="animate-in">
@@ -164,6 +177,14 @@ export default function PeriodDetail() {
           <p className="page-subtitle" style={{ marginLeft: '72px' }}>{total} employee record(s)</p>
         </div>
         <div className="page-actions">
+          {period && (period.status === 'approved' || period.status === 'paid') && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => navigate(`/payroll/periods/${periodId}/sheet`)}
+            >
+              Salary Sheet
+            </button>
+          )}
           {canRun && (
             <button
               className="btn btn-primary"
@@ -206,7 +227,7 @@ export default function PeriodDetail() {
             <div className="stat-value" style={{ fontSize: 'var(--text-2xl)' }}>{fmt(totalGross)}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label">Total Deductions</div>
+            <div className="stat-label">Total EPF</div>
             <div className="stat-value" style={{ fontSize: 'var(--text-2xl)', color: 'var(--error)' }}>{fmt(totalDeductions)}</div>
           </div>
           <div className="stat-card">
@@ -223,6 +244,7 @@ export default function PeriodDetail() {
           data={records}
           onRowClick={(row) => navigate(`/payroll/periods/${periodId}/records/${row.employee_id}`)}
           emptyMessage="No payroll records. Run the payroll engine to generate records."
+          summaryRow={summaryRow}
         />
       </div>
 

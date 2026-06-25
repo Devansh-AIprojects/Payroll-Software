@@ -107,7 +107,7 @@
   --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Layout */
-  --sidebar-width: 260px;
+  --sidebar-width: 220px;
   --topbar-height: 64px;
 }
 
@@ -423,7 +423,7 @@ a:hover {
 }
 .data-table th {
   background: rgba(255, 255, 255, 0.04);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) 0.8rem;
   text-align: left;
   font-weight: 600;
   font-size: var(--text-xs);
@@ -434,7 +434,7 @@ a:hover {
   white-space: nowrap;
 }
 .data-table td {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) 0.8rem;
   border-bottom: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   vertical-align: middle;
@@ -692,10 +692,11 @@ a:hover {
 }
 .main-content {
   flex: 1;
+  min-width: 0;
   margin-left: var(--sidebar-width);
 }
 .page-content {
-  padding: var(--space-8);
+  padding: var(--space-8) var(--space-6) var(--space-8) var(--space-8);
   max-width: 1400px;
 }
 
@@ -1052,8 +1053,15 @@ a:hover {
   .sidebar-overlay { display: none; }
 }
 
+/* ── Print-only utility (hidden on screen) ───────────────────────── */
+.print-only { display: none; }
+
 /* ── Print styles ─────────────────────────────────────────────────── */
 @media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
   .sidebar,
   .topbar,
   .hamburger-btn,
@@ -1062,6 +1070,9 @@ a:hover {
   .modal,
   .print-hide {
     display: none !important;
+  }
+  .print-only {
+    display: block !important;
   }
   .app-layout {
     display: block;
@@ -1098,6 +1109,9 @@ a:hover {
     color: #000 !important;
     border-color: #ccc !important;
   }
+  .data-table th {
+    background: #f0f0f0 !important;
+  }
   .stat-card {
     border: 1px solid #ddd !important;
     background: #f9f9f9 !important;
@@ -1113,3 +1127,427 @@ a:hover {
     color: #000 !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Manual Attendance Page
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tab bar ─────────────────────────────────────────────────────── */
+.att-tab-bar {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1);
+  margin-bottom: var(--space-6);
+  width: fit-content;
+}
+.att-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.att-tab:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+.att-tab--active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+.att-tab-content {
+  animation: fadeIn var(--transition-fast) ease-out;
+}
+
+/* ── Stats bar ───────────────────────────────────────────────────── */
+.att-stats-bar {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+.att-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 120px;
+  backdrop-filter: blur(12px);
+}
+.att-stat-value {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.att-stat-label {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+/* ── Legend ──────────────────────────────────────────────────────── */
+.att-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.att-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.att-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Grid controls ───────────────────────────────────────────────── */
+.att-grid-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.att-month-label {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 180px;
+  text-align: center;
+}
+
+/* ── Grid table ──────────────────────────────────────────────────── */
+.att-grid-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.att-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+  table-layout: fixed;
+}
+.att-grid-emp-col {
+  position: sticky;
+  left: 0;
+  width: 160px;
+  min-width: 160px;
+  background: rgba(10, 11, 16, 0.95);
+  z-index: 3;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-default);
+  backdrop-filter: blur(8px);
+}
+.att-grid-day-col {
+  width: 44px;
+  min-width: 44px;
+  text-align: center;
+  padding: var(--space-2) 2px;
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+  font-weight: 500;
+  background: rgba(255,255,255,0.04);
+  position: relative;
+  cursor: default;
+}
+.att-grid-day-col.att-day-weekend {
+  background: rgba(100, 116, 139, 0.06);
+}
+.att-day-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.att-day-dow {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.att-bulk-btn {
+  display: block;
+  margin: 3px auto 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  transition: color var(--transition-fast);
+}
+.att-bulk-btn:hover {
+  color: var(--accent);
+}
+
+/* ── Grid rows & cells ───────────────────────────────────────────── */
+.att-grid-row:hover .att-grid-emp-cell {
+  background: rgba(255, 255, 255, 0.04);
+}
+.att-grid-emp-cell {
+  position: sticky;
+  left: 0;
+  background: rgba(10, 11, 16, 0.95);
+  z-index: 2;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(8px);
+  transition: background var(--transition-fast);
+}
+.att-emp-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+.att-emp-code {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.att-grid-cell-td {
+  padding: 3px 2px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: center;
+}
+.att-grid-row:last-child .att-grid-cell-td,
+.att-grid-row:last-child .att-grid-emp-cell {
+  border-bottom: none;
+}
+
+/* ── Individual status cell button ───────────────────────────────── */
+.att-cell {
+  width: 36px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all var(--transition-fast);
+  letter-spacing: 0.02em;
+}
+.att-cell:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  z-index: 1;
+}
+.att-cell-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.att-cell-dot--manual {
+  background: var(--info);
+}
+.att-cell-dot--exception {
+  background: var(--accent);
+}
+
+/* ── Employee Calendar View ──────────────────────────────────────── */
+.att-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: var(--space-3);
+}
+.att-cal-day {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-family: var(--font-sans);
+}
+.att-cal-day:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-default);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.att-cal-day--weekend {
+  background: rgba(100, 116, 139, 0.06);
+}
+.att-cal-day--has-record {
+  border-width: 1.5px;
+}
+.att-cal-day-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.att-cal-date {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.att-cal-dow {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.att-cal-badge {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.att-cal-hours {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+.att-cal-ot {
+  font-size: 10px;
+  color: var(--success);
+  font-weight: 600;
+}
+.att-cal-time {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+.att-cal-indicators {
+  display: flex;
+  gap: var(--space-1);
+  margin-top: auto;
+}
+.att-cal-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.att-cal-tag--manual {
+  background: rgba(56,189,248,0.15);
+  color: var(--info);
+}
+.att-cal-tag--flag {
+  background: var(--warning-subtle);
+  color: var(--warning);
+}
+.att-cal-empty {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: auto;
+  padding: var(--space-1) 0;
+}
+
+/* ── Bulk modal employee list ────────────────────────────────────── */
+.att-bulk-list {
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.att-bulk-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  transition: background var(--transition-fast);
+}
+.att-bulk-item:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+.att-bulk-item input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Progress bar (bulk save) ────────────────────────────────────── */
+.att-progress-bar {
+  height: 4px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.att-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  transition: width 150ms linear;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.att-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16);
+  color: var(--text-muted);
+  text-align: center;
+}
+

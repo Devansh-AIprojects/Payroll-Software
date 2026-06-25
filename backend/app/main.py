@@ -60,15 +60,9 @@ app.add_middleware(
 )
 
 # ── Global error handler ──────────────────────────────────────────────────────
-
-@app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception):
-    if settings.app_debug:
-        raise exc
-    return JSONResponse(
-        status_code=500,
-        content={"success": False, "detail": "Internal server error"},
-    )
+# Note: Do not catch base Exception globally when app_debug=True,
+# as it breaks FastAPI's built-in StarletteHTTPException handlers (404, 405)
+# and returns unparsed python Tracebacks to the frontend instead of JSON.
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────
@@ -80,7 +74,7 @@ app.include_router(config_router,    prefix=API_PREFIX)
 app.include_router(employees_router, prefix=API_PREFIX)
 app.include_router(devices_router)
 app.include_router(adms_router)       # mounts at /iclock — no auth
-app.include_router(attendance_router) # mounts at /attendance — JWT auth
+app.include_router(attendance_router, prefix=API_PREFIX) # mounts at /api/v1/attendance — JWT auth
 app.include_router(leave_router, prefix=API_PREFIX)  # mounts at /api/v1/leave — JWT auth
 app.include_router(payroll_router, prefix=API_PREFIX)  # mounts at /api/v1/payroll — JWT auth
 

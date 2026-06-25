@@ -217,6 +217,42 @@ async def resolve_exception(
     return APIResponse(data=data, message="Exception resolved")
 
 
+# ── Manual Attendance: Monthly grid ──────────────────────────────────────────
+
+@attendance_router.get(
+    "/daily/{employee_id}",
+    response_model=APIResponse[list[AttendanceDailyResponse]],
+)
+async def get_daily_by_employee(
+    employee_id: str,
+    from_date: date = Query(...),
+    to_date: date = Query(...),
+    user: AuthUser = require_hr,
+):
+    """Get processed daily attendance records for a specific employee."""
+    async with get_connection() as conn:
+        data = await service.get_daily_by_employee(
+            conn, user.org_id, employee_id, from_date.isoformat(), to_date.isoformat()
+        )
+    return APIResponse(data=data)
+
+
+@attendance_router.get("/monthly-grid")
+async def get_monthly_grid(
+    year: int = Query(..., ge=2020),
+    month: int = Query(..., ge=1, le=12),
+    user: AuthUser = require_hr,
+):
+    """
+    Returns all active employees + their attendance_daily rows for a given month.
+    Used by the Monthly Grid View on the Manual Attendance page.
+    Response: { employees: [...], stats: { total_present, total_absent, ... } }
+    """
+    async with get_connection() as conn:
+        data = await service.get_monthly_grid(conn, user.org_id, year, month)
+    return APIResponse(data=data)
+
+
 # ── Phase 4: Exception list ──────────────────────────────────────────────────
 
 @attendance_router.get(

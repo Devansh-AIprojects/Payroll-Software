@@ -10,10 +10,7 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
-      '/attendance': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
+
       '/iclock': {
         target: 'http://localhost:8000',
         changeOrigin: true,

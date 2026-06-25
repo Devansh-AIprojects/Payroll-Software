@@ -13,9 +13,11 @@ import EmployeeDetail from './pages/employees/EmployeeDetail';
 import Exceptions from './pages/attendance/Exceptions';
 import AttendanceProcess from './pages/attendance/AttendanceProcess';
 import LeaveManagement from './pages/attendance/LeaveManagement';
+import ManualAttendance from './pages/attendance/ManualAttendance';
 import Periods from './pages/payroll/Periods';
 import PeriodDetail from './pages/payroll/PeriodDetail';
 import Payslip from './pages/payroll/Payslip';
+import SalarySheet from './pages/payroll/SalarySheet';
 import ConfigPage from './pages/config/ConfigPage';
 
 export default function App() {
@@ -47,10 +49,12 @@ export default function App() {
                 <Route path="/attendance/process" element={<AttendanceProcess />} />
                 <Route path="/attendance/exceptions" element={<Exceptions />} />
                 <Route path="/attendance/leave" element={<LeaveManagement />} />
+                <Route path="/attendance/manual" element={<ManualAttendance />} />
 
                 {/* Payroll */}
                 <Route path="/payroll/periods" element={<Periods />} />
                 <Route path="/payroll/periods/:periodId" element={<PeriodDetail />} />
+                <Route path="/payroll/periods/:periodId/sheet" element={<SalarySheet />} />
                 <Route path="/payroll/periods/:periodId/records/:employeeId" element={<Payslip />} />
 
                 {/* Config */}

@@ -4,6 +4,11 @@ import api from '../../api/client';
 import Modal from '../../components/Modal';
 import { Spinner } from '../../components/Loader';
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
 const fmt = (num) => {
   if (num == null) return '—';
   return Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -87,6 +92,9 @@ export default function Payslip() {
   const earnings = components.filter((c) => c.component_type === 'earning' && c.is_displayed);
   const compDeductions = components.filter((c) => c.component_type === 'deduction');
   const canModify = period && (period.status === 'draft' || period.status === 'processing');
+  const periodLabel = period
+    ? `${MONTH_NAMES[(period.month - 1) % 12]} ${period.year}`
+    : '';
 
   return (
     <div className="animate-in">
@@ -113,6 +121,12 @@ export default function Payslip() {
       </div>
 
       <div className="card">
+        {/* Print-only company letterhead */}
+        <div className="print-only" style={{ textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, letterSpacing: '0.02em' }}>STC Cotyarn Exim Pvt. Ltd.</div>
+          <div style={{ fontSize: '0.95rem', marginTop: '0.2rem', color: '#444' }}>Salary Slip — {periodLabel}</div>
+        </div>
+
         {/* Header */}
         <div className="payslip-header">
           <div>

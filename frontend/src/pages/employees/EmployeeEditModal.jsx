@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import Modal from '../../components/Modal';
 
+function fmtTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const period = h < 12 ? 'AM' : 'PM';
+  const hour = h % 12 || 12;
+  return m === 0 ? `${hour} ${period}` : `${hour}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 export default function EmployeeEditModal({ employee, onClose, onSuccess }) {
   const [form, setForm] = useState({
     name: employee.name || '',
@@ -328,7 +336,7 @@ export default function EmployeeEditModal({ employee, onClose, onSuccess }) {
                 <option value="">— Select Shift —</option>
                 {shifts.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} ({s.start_time}–{s.end_time})
+                    {s.name.includes('(') ? s.name : `${s.name} (${fmtTime(s.start_time)}–${fmtTime(s.end_time)})`}
                   </option>
                 ))}
               </select>

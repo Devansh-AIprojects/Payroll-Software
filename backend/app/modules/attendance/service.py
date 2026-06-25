@@ -366,9 +366,11 @@ async def process_daily_attendance(
                 status = "present"
 
             # 6. Calculate OT / undertime (Maintenance + Staff only)
+            # OT/undertime from hours vs shift hours — all pay types (8h Staff, 12h
+            # Labour). Engine zeroes it for trainees (daily_flat) at monetisation.
             ot_hours = Decimal("0")
             undertime_hours = Decimal("0")
-            if pay_type == "hours_based" and status == "present" and hours_worked > 0:
+            if status == "present" and hours_worked > 0:
                 if hours_worked > standard_hours:
                     ot_hours = hours_worked - standard_hours
                 elif hours_worked < standard_hours:
@@ -415,6 +417,18 @@ async def process_daily_attendance(
 
 # ── Manual override ───────────────────────────────────────────────────────────
 
+def _compute_ot_undertime(
+    hours_worked: Decimal,
+    standard_hours: Decimal,
+) -> tuple[float, float]:
+    """Return (ot_hours, undertime_hours) for an hours_based employee."""
+    if hours_worked > standard_hours:
+        return float(hours_worked - standard_hours), 0.0
+    elif hours_worked < standard_hours:
+        return 0.0, float(standard_hours - hours_worked)
+    return 0.0, 0.0
+
+
 async def override_daily(
     conn: Connection,
     org_id: str,
@@ -423,14 +437,33 @@ async def override_daily(
     user_id: str,
 ) -> dict:
     """HR manually corrects an attendance_daily record. Sets is_manual_override=TRUE."""
+    # Auto-compute OT/undertime from hours_worked vs the employee's shift hours,
+    # for present/late/overtime. Applies to all pay types (8h Staff, 12h Labour).
+    ot_out = float(data.ot_hours) if data.ot_hours is not None else None
+    ut_out = float(data.undertime_hours) if data.undertime_hours is not None else None
+
+    if (data.status in ('present', 'late', 'overtime')
+            and data.hours_worked is not None and data.hours_worked > 0):
+        emp_info = await conn.fetchrow("""
+            SELECT s.standard_hours
+            FROM attendance_daily ad
+            JOIN employees e ON e.id = ad.employee_id
+            JOIN shifts s ON s.id = e.shift_id
+            WHERE ad.id = $1 AND ad.org_id = $2
+        """, daily_id, org_id)
+        if emp_info:
+            ot_out, ut_out = _compute_ot_undertime(
+                data.hours_worked, Decimal(str(emp_info['standard_hours']))
+            )
+
     row = await conn.fetchrow(
         q.ATTENDANCE_DAILY_OVERRIDE,
         daily_id, org_id,
         data.status,
         data.in_time, data.out_time,
         float(data.hours_worked) if data.hours_worked is not None else None,
-        float(data.ot_hours) if data.ot_hours is not None else None,
-        float(data.undertime_hours) if data.undertime_hours is not None else None,
+        ot_out,
+        ut_out,
         user_id,
         data.override_reason,
     )
@@ -448,13 +481,31 @@ async def create_manual_attendance(
     user_id: str,
 ) -> dict:
     """HR manually inserts or overwrites an attendance_daily record from scratch."""
-    # Ensure employee exists
-    emp = await conn.fetchrow(
-        "SELECT id FROM employees WHERE id = $1 AND org_id = $2",
-        data.employee_id, org_id,
-    )
+    # Fetch employee with shift and category to auto-compute OT/undertime
+    emp = await conn.fetchrow("""
+        SELECT e.id, c.pay_type, s.standard_hours
+        FROM employees e
+        JOIN shifts s ON s.id = e.shift_id
+        JOIN categories c ON c.id = e.category_id
+        WHERE e.id = $1 AND e.org_id = $2
+    """, data.employee_id, org_id)
     if not emp:
         raise NotFoundError("Employee", data.employee_id)
+
+    # Auto-compute OT/undertime from hours_worked vs the employee's shift hours.
+    # Applies to all pay types (8h Staff, 12h Labour) on worked-day statuses:
+    #   present  → hours optional; over/under shift = OT/undertime
+    #   late     → hours short of shift = undertime (docks pay)
+    #   overtime → hours over shift = OT (adds pay)
+    # The payroll engine decides monetisation; trainees (daily_flat) are zeroed there.
+    ot_hours_final = 0.0
+    undertime_final = 0.0
+    if (data.status in ('present', 'late', 'overtime')
+            and data.hours_worked is not None
+            and data.hours_worked > 0):
+        ot_hours_final, undertime_final = _compute_ot_undertime(
+            data.hours_worked, Decimal(str(emp['standard_hours']))
+        )
 
     row = await conn.fetchrow(
         q.ATTENDANCE_DAILY_MANUAL_UPSERT,
@@ -465,8 +516,8 @@ async def create_manual_attendance(
         data.out_time,
         float(data.hours_worked) if data.hours_worked is not None else 0.0,
         data.status,
-        float(data.ot_hours) if data.ot_hours is not None else 0.0,
-        float(data.undertime_hours) if data.undertime_hours is not None else 0.0,
+        ot_hours_final,
+        undertime_final,
         user_id,
         data.override_reason,
     )
@@ -611,4 +662,64 @@ async def get_daily_by_employee(
         q.ATTENDANCE_DAILY_BY_EMPLOYEE, org_id, employee_id, from_date, to_date
     )
     return [dict(r) for r in rows]
+
+
+async def get_monthly_grid(
+    conn: Connection,
+    org_id: str,
+    year: int,
+    month: int,
+) -> dict:
+    """
+    Return all attendance records for every active employee in a given month.
+    Also returns aggregate stats for the month header.
+    The flat row list is structured as:
+      { employees: [{employee_id, employee_code, employee_name, records: [{date, status, ...}]}],
+        stats: {total_present, total_absent, total_half_day, total_ot_hours} }
+    """
+    rows = await conn.fetch(q.MONTHLY_GRID, org_id, year, month)
+    stats_row = await conn.fetchrow(q.MONTHLY_STATS, org_id, year, month)
+
+    # Group flat rows by employee
+    employees: dict[str, dict] = {}
+    for row in rows:
+        emp_id = str(row["employee_id"])
+        if emp_id not in employees:
+            employees[emp_id] = {
+                "employee_id": emp_id,
+                "employee_code": row["employee_code"],
+                "employee_name": row["employee_name"],
+                "standard_hours": float(row["standard_hours"]) if row["standard_hours"] is not None else None,
+                "records": [],
+            }
+        if row["date"] is not None:
+            rec = {
+                "daily_id": str(row["daily_id"]) if row["daily_id"] else None,
+                "date": row["date"].isoformat(),
+                "status": row["status"],
+                "hours_worked": float(row["hours_worked"]) if row["hours_worked"] is not None else None,
+                "ot_hours": float(row["ot_hours"]) if row["ot_hours"] is not None else None,
+                "undertime_hours": float(row["undertime_hours"]) if row["undertime_hours"] is not None else None,
+                "is_manual_override": row["is_manual_override"],
+                "override_by": row["override_by"],
+                "override_reason": row["override_reason"],
+                "review_status": row["review_status"],
+                "exception_type": row["exception_type"],
+                "in_time": row["in_time"].isoformat() if row["in_time"] else None,
+                "out_time": row["out_time"].isoformat() if row["out_time"] else None,
+                "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None,
+            }
+            employees[emp_id]["records"].append(rec)
+
+    stats = {
+        "total_present": stats_row["total_present"] if stats_row else 0,
+        "total_absent": stats_row["total_absent"] if stats_row else 0,
+        "total_half_day": stats_row["total_half_day"] if stats_row else 0,
+        "total_ot_hours": float(stats_row["total_ot_hours"]) if stats_row else 0.0,
+    }
+
+    return {
+        "employees": list(employees.values()),
+        "stats": stats,
+    }
 

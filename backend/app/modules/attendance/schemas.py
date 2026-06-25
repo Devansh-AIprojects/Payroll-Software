@@ -61,7 +61,7 @@ class ManualAttendanceCreate(BaseModel):
     """HR manually inserts or overwrites an attendance_daily record from scratch."""
     employee_id: str
     date: date
-    status: Literal['present', 'absent', 'half_day', 'late', 'holiday', 'weekly_off']
+    status: Literal['present', 'absent', 'half_day', 'late', 'weekly_off', 'overtime']
     in_time: Optional[datetime] = None
     out_time: Optional[datetime] = None
     hours_worked: Optional[Decimal] = Field(None, ge=0)
@@ -73,7 +73,7 @@ class ManualAttendanceCreate(BaseModel):
 class DailyOverrideRequest(BaseModel):
     """HR manually corrects an attendance_daily record."""
     status: Optional[Literal[
-        'present', 'absent', 'half_day', 'late', 'holiday', 'weekly_off'
+        'present', 'absent', 'half_day', 'late', 'weekly_off', 'overtime'
     ]] = None
     in_time: Optional[datetime] = None
     out_time: Optional[datetime] = None

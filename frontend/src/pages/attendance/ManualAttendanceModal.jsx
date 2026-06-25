@@ -95,7 +95,7 @@ export default function ManualAttendanceModal({ employees, onClose, onSuccess })
                 <option value="absent">Absent</option>
                 <option value="half_day">Half Day</option>
                 <option value="late">Late</option>
-                <option value="holiday">Holiday</option>
+                <option value="overtime">Overtime</option>
                 <option value="weekly_off">Weekly Off</option>
               </select>
             </div>

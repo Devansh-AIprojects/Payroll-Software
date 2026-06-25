@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api, { raw } from '../../api/client';
+import api from '../../api/client';
 import DataTable from '../../components/DataTable';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
@@ -32,7 +32,7 @@ export default function Exceptions() {
     setError('');
     setActionMsg('');
     try {
-      const res = await raw.get(`/attendance/exceptions?year=${year}&month=${month}`);
+      const res = await api.get(`/attendance/exceptions?year=${year}&month=${month}`);
       setData(res.data);
     } catch (err) {
       setError(err.message);
@@ -43,7 +43,7 @@ export default function Exceptions() {
 
   async function handleResolve(dailyId) {
     try {
-      await raw.patch(`/attendance/daily/${dailyId}/resolve`);
+      await api.patch(`/attendance/daily/${dailyId}/resolve`);
       setActionMsg('Exception resolved');
       await loadExceptions();
     } catch (err) {
@@ -56,7 +56,7 @@ export default function Exceptions() {
     setOverrideLoading(true);
     setOverrideError('');
     try {
-      await raw.patch(`/attendance/daily/${overrideRecord.id}`, {
+      await api.patch(`/attendance/daily/${overrideRecord.id}`, {
         status: overrideStatus,
         ot_hours: parseFloat(overrideOt) || 0,
         override_reason: overrideReason,

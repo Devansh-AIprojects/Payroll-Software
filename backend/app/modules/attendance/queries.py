@@ -241,3 +241,53 @@ LEAVE_EXISTS_FOR_DATE = """
           AND $3 BETWEEN from_date AND to_date
     ) AS exists
 """
+
+# ── Monthly grid (Manual Attendance page) ────────────────────────────────────
+
+# Returns all active employees with their attendance_daily rows for a given
+# month. Uses a LEFT JOIN so employees with no records appear as empty rows.
+# The frontend assembles the full grid (employee × date) from this flat list.
+MONTHLY_GRID = """
+    SELECT
+        e.id            AS employee_id,
+        e.employee_code,
+        e.name          AS employee_name,
+        e.department_id,
+        s.standard_hours,
+        ad.id           AS daily_id,
+        ad.date,
+        ad.status,
+        ad.hours_worked,
+        ad.ot_hours,
+        ad.undertime_hours,
+        ad.is_manual_override,
+        ad.override_by,
+        ad.override_reason,
+        ad.review_status,
+        ad.exception_type,
+        ad.in_time,
+        ad.out_time,
+        ad.updated_at
+    FROM employees e
+    JOIN shifts s ON s.id = e.shift_id
+    LEFT JOIN attendance_daily ad
+           ON ad.employee_id = e.id
+          AND ad.org_id      = $1
+          AND ad.date >= make_date($2::int, $3::int, 1)
+          AND ad.date <  (make_date($2::int, $3::int, 1) + INTERVAL '1 month')::date
+    WHERE e.org_id = $1 AND e.is_active = TRUE
+    ORDER BY e.name, ad.date
+"""
+
+# Aggregate stats for a month: total present / absent / OT across all employees
+MONTHLY_STATS = """
+    SELECT
+        COUNT(*) FILTER (WHERE status = 'present')              AS total_present,
+        COUNT(*) FILTER (WHERE status = 'absent')               AS total_absent,
+        COUNT(*) FILTER (WHERE status = 'half_day')             AS total_half_day,
+        COALESCE(SUM(ot_hours), 0)                              AS total_ot_hours
+    FROM attendance_daily
+    WHERE org_id = $1
+      AND date >= make_date($2::int, $3::int, 1)
+      AND date <  (make_date($2::int, $3::int, 1) + INTERVAL '1 month')::date
+"""

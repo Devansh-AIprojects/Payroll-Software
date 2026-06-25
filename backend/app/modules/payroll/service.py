@@ -235,13 +235,16 @@ async def _process_single_employee(
             raise BadRequestError(
                 f"No tier rate found for department with {days_int} days present"
             )
-        daily_rate = Decimal(str(tier_row["daily_rate"])) + jobber_allowance_per_day
+        base_tier_rate = Decimal(str(tier_row["daily_rate"]))  # bare rate, jobber excluded
+        daily_rate = base_tier_rate + jobber_allowance_per_day
         tier_applied = tier_row["tier"]
         daily_rate_applied = float(daily_rate)
-        gross = calc_path_a_tier(days_present, daily_rate)
-        # Tier/daily_flat employees have no OT/undertime
-        ot_hours = Decimal("0")
-        undertime_hours = Decimal("0")
+        # OT/undertime valued on the bare tier rate per shift hour (jobber excluded)
+        standard_hours = Decimal(str(emp["standard_hours"]))
+        gross = calc_path_a_tier(
+            days_present, daily_rate, base_tier_rate,
+            ot_hours, undertime_hours, standard_hours,
+        )
 
     elif salary_type == "daily_flat":
         # Path B — Trainee
@@ -467,6 +470,67 @@ async def get_payslip(
         "components": components,
         "deductions": deductions,
     }
+
+
+# ── Salary sheet ─────────────────────────────────────────────────────────────
+
+async def get_salary_sheet(
+    conn: Connection,
+    org_id: str,
+    period_id: str,
+) -> list[dict]:
+    """
+    Returns one row per employee for the salary sheet view.
+    Components (Basic, DA, T Basic, Allowances, EPF) are fetched in a single
+    query and pivoted in Python — no per-employee round trips.
+    """
+    await get_period(conn, org_id, period_id)
+
+    rows = await conn.fetch(q.PAYROLL_SHEET_RECORDS, period_id, org_id)
+    comp_rows = await conn.fetch(q.PAYROLL_SHEET_COMPONENTS, period_id, org_id)
+
+    # Pivot: record_id → { component_name: value }
+    comps_by_record: dict[str, dict] = {}
+    for cr in comp_rows:
+        rid = str(cr["payroll_record_id"])
+        comps_by_record.setdefault(rid, {})[cr["component_name"]] = float(cr["value"])
+
+    result = []
+    for i, row in enumerate(rows, 1):
+        rid = str(row["payroll_record_id"])
+        comps = comps_by_record.get(rid, {})
+        salary_type = row["salary_type"]
+
+        if salary_type == "monthly":
+            monthly_salary = float(row["monthly_salary"]) if row["monthly_salary"] is not None else None
+            # Use the rate the engine actually paid — already stored as daily_rate_applied
+            per_day = float(row["daily_rate_applied"]) if row["daily_rate_applied"] is not None else None
+        else:
+            # Labour (tier) or Trainee (daily_flat) — no monthly salary concept
+            monthly_salary = None
+            per_day = float(row["daily_rate_applied"]) if row["daily_rate_applied"] is not None else None
+
+        result.append({
+            "sr_no": i,
+            "employee_id": str(row["employee_id"]),
+            "employee_code": row["employee_code"],
+            "employee_name": row["employee_name"],
+            "gender": row["gender"],
+            "monthly_salary": monthly_salary,
+            "per_day": per_day,
+            "days_present": float(row["days_present"]),
+            "gross": float(row["gross"]),
+            "basic": comps.get("Basic"),
+            "da": comps.get("DA"),
+            "t_basic": comps.get("T Basic"),
+            "allowances": comps.get("Allowances"),
+            "epf": comps.get("EPF"),
+            "total_deductions": float(row["total_deductions"]),
+            "net_pay": float(row["net_pay"]),
+            "payment_mode": row["payment_mode"],
+        })
+
+    return result
 
 
 # ── Record listing ───────────────────────────────────────────────────────────

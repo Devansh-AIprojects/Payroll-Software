@@ -67,13 +67,15 @@ PAYROLL_ENGINE_EMPLOYEES = """
 """
 
 # Attendance summary for one employee for a given month/year.
-# Half-day counts as 0.5 present. Absent doesn't count.
+# Paid full days: present, late, weekly_off (paid leave), overtime.
+# half_day = 0.5. absent = 0. (holiday removed in migration 016.)
+# Short/extra hours on late/overtime are docked/added via ot_hours & undertime_hours.
 # Returns: days_present (NUMERIC), ot_hours (NUMERIC), undertime_hours (NUMERIC).
 PAYROLL_ATTENDANCE_SUMMARY = """
     SELECT
         COALESCE(SUM(
             CASE
-                WHEN status = 'present' THEN 1.0
+                WHEN status IN ('present', 'late', 'weekly_off', 'overtime') THEN 1.0
                 WHEN status = 'half_day' THEN 0.5
                 ELSE 0
             END
@@ -258,6 +260,46 @@ DEDUCTION_SUM = """
     SELECT COALESCE(SUM(amount), 0) AS total
     FROM payroll_deductions
     WHERE payroll_record_id = $1
+"""
+
+# ── Salary sheet ─────────────────────────────────────────────────────────────
+
+# All payroll records for a period with the employee fields needed for the sheet.
+# salary_type comes from sub_categories so the service can decide which columns to populate.
+PAYROLL_SHEET_RECORDS = """
+    SELECT
+        pr.id              AS payroll_record_id,
+        pr.employee_id,
+        e.employee_code,
+        e.name             AS employee_name,
+        e.gender,
+        e.monthly_salary,
+        e.per_day_salary,
+        pr.daily_rate_applied,
+        pr.days_present,
+        pr.gross,
+        pr.total_deductions,
+        pr.net_pay,
+        pr.payment_mode,
+        sc.salary_type
+    FROM payroll_records pr
+    JOIN employees e      ON e.id  = pr.employee_id
+    JOIN sub_categories sc ON sc.id = e.sub_category_id
+    WHERE pr.period_id = $1 AND pr.org_id = $2
+    ORDER BY e.name
+"""
+
+# All earning component values for every record in the period — fetched in one
+# round-trip and pivoted in Python rather than doing per-record queries.
+PAYROLL_SHEET_COMPONENTS = """
+    SELECT
+        pcv.payroll_record_id,
+        pcv.component_name,
+        pcv.value
+    FROM payroll_component_values pcv
+    JOIN payroll_records pr ON pr.id = pcv.payroll_record_id
+    WHERE pr.period_id = $1 AND pr.org_id = $2
+      AND pcv.component_type = 'earning'
 """
 
 # ── Exception guard ───────────────────────────────────────────────────────────
