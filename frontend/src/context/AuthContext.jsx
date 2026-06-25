@@ -30,8 +30,11 @@ export function AuthProvider({ children }) {
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.detail || 'Login failed');
+      const data = await response.json().catch(() => ({}));
+      const detail = Array.isArray(data.detail)
+        ? data.detail.map((e) => e.msg).join(', ')
+        : data.detail;
+      throw new Error(detail || 'Login failed');
     }
 
     const data = await response.json();

@@ -70,11 +70,12 @@ Note: the DB `users_role_check` constraint allows only `admin` / `hr` / `viewer`
 
 | Login email | Role | Password | Purpose |
 |---|---|---|---|
-| `admin_test@trial.local` | `admin` | `Test@1234` | Full access — for mill manager |
-| `operator_test@trial.local` | `hr` | `Test@1234` | Attendance + payroll entry — for time office staff |
-| `viewer_test@trial.local` | `viewer` | `Test@1234` | Read-only — for supervisors to browse |
+| `admin_test@example.com` | `admin` | `Test@1234` | Full access — for mill manager |
+| `operator_test@example.com` | `hr` | `Test@1234` | Attendance + payroll entry — for time office staff |
+| `viewer_test@example.com` | `viewer` | `Test@1234` | Read-only — for supervisors to browse |
 
 Passwords are throwaway. Hashes generated with the app's own bcrypt (`hash_password`) so they verify correctly.
+Note: emails must use a real TLD — the login schema's `EmailStr` rejects reserved domains like `.local` (returns 422), so `@example.com` is used.
 
 ### 4. Vite Production Build
 
