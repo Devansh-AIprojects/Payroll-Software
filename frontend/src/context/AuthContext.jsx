@@ -42,6 +42,9 @@ export function AuthProvider({ children }) {
       user_id: data.user_id,
       org_id: data.org_id,
       role: data.role,
+      name: data.name,
+      email: data.email,
+      org_name: data.org_name,
     };
 
     localStorage.setItem('auth_token', data.access_token);

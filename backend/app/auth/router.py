@@ -19,6 +19,9 @@ class LoginResponse(BaseModel):
     role: str
     org_id: str
     user_id: str
+    name: str
+    email: str
+    org_name: str
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -26,9 +29,11 @@ async def login(body: LoginRequest):
     async with get_connection() as conn:
         row = await conn.fetchrow(
             """
-            SELECT id, org_id, role, password_hash
-            FROM users
-            WHERE email = $1 AND is_active = TRUE
+            SELECT u.id, u.org_id, u.role, u.password_hash, u.name, u.email,
+                   o.name AS org_name
+            FROM users u
+            JOIN organisations o ON o.id = u.org_id
+            WHERE LOWER(u.email) = LOWER($1) AND u.is_active = TRUE
             LIMIT 1
             """,
             body.email,
@@ -48,4 +53,7 @@ async def login(body: LoginRequest):
         role=row["role"],
         org_id=str(row["org_id"]),
         user_id=str(row["id"]),
+        name=row["name"],
+        email=row["email"],
+        org_name=row["org_name"],
     )

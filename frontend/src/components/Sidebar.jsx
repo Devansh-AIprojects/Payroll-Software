@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { roleLabel } from '../lib/roles';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { logout, user } = useAuth();
@@ -141,12 +142,13 @@ export default function Sidebar({ isOpen, onClose }) {
 
         {/* Footer */}
         <div className="sidebar-footer">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
-            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 700, fontSize: 'var(--text-xs)' }}>
-              {user?.role?.[0]?.toUpperCase() || 'U'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 700, fontSize: 'var(--text-xs)', flexShrink: 0 }}>
+              {(user?.name?.[0] || user?.role?.[0] || 'U').toUpperCase()}
             </div>
-            <div>
-              <div style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: 'var(--text-sm)' }}>{user?.role}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: 'var(--text-sm)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || roleLabel(user?.role)}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>{roleLabel(user?.role)}</div>
             </div>
           </div>
           <button className="btn btn-ghost w-full" onClick={logout}>
