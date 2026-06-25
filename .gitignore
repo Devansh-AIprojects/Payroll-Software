@@ -35,6 +35,9 @@ wheels/
 .DS_Store
 Thumbs.db
 
+# MCP project config — handled at user scope globally, no project-level file needed
+.mcp.json
+
 # Local notes / scratch docs — not code, not deployed. Keep local only.
 KNOWN_ISSUES.md
 FIX_VERCEL_REWRITES.md
