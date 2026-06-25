@@ -8,7 +8,6 @@ import bcrypt
 
 from app.config import get_settings
 from app.core.exceptions import UnauthorizedError, ForbiddenError
-from app.database import get_connection
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -79,17 +78,13 @@ async def get_current_user(
     except JWTError:
         raise UnauthorizedError("Token invalid or expired")
 
-    # Confirm user is still active in DB
-    # This adds one DB hit per request — acceptable for a low-traffic internal tool.
-    # Can be eliminated later by caching active user set in Redis.
-    async with get_connection() as conn:
-        row = await conn.fetchrow(
-            "SELECT id FROM users WHERE id = $1 AND is_active = TRUE",
-            user_id,
-        )
-    if not row:
-        raise UnauthorizedError("User not found or deactivated")
-
+    # NOTE: We intentionally do NOT re-query the DB to check is_active on every
+    # request. That round-trip dominated latency (~1s/request, cross-region) and
+    # roughly doubled every authenticated call. We trust the signed JWT for its
+    # lifetime (settings.access_token_expire_minutes). Trade-off: a deactivated
+    # user stays valid until their token expires. If immediate revocation is ever
+    # required, re-introduce a check here — ideally cached in Redis, not a raw DB
+    # hit on the hot path.
     return AuthUser(user_id=user_id, org_id=org_id, role=role)
 
 

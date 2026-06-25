@@ -5,11 +5,30 @@ import Modal from '../../components/Modal';
 import { Spinner } from '../../components/Loader';
 import { useToast } from '../../context/ToastContext';
 
+const MONTH_NAMES = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+const DAY_MS = 86400000;
+
+// Parse a 'YYYY-MM-DD' (or ISO) string to a UTC epoch at date granularity, so
+// month math is timezone-safe (no off-by-one at month edges).
+const toUTCDate = (s) => {
+  if (!s) return null;
+  const [y, m, d] = s.slice(0, 10).split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+};
+
 export default function LeaveManagement() {
   const { addToast } = useToast();
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+
+  // Month filter (defaults to current month) — drives both cards and the table
+  const [filterYear, setFilterYear] = useState(() => new Date().getFullYear());
+  const [filterMonth, setFilterMonth] = useState(() => new Date().getMonth() + 1);
 
   // Create modal state
   const [employees, setEmployees] = useState([]);
@@ -91,6 +110,39 @@ export default function LeaveManagement() {
     return diff === 1 ? '1 day' : `${diff} days`;
   };
 
+  // ── Month-scoped aggregates ──────────────────────────────────────────────
+  const monthStart = Date.UTC(filterYear, filterMonth - 1, 1);
+  const monthEnd = Date.UTC(filterYear, filterMonth, 0); // day 0 of next month = last day
+
+  // Holiday days that actually fall inside the selected month (clamped at edges,
+  // so a leave spanning a month boundary only counts its in-month days).
+  const daysInSelectedMonth = (from, to) => {
+    const f = toUTCDate(from);
+    const t = toUTCDate(to);
+    if (f === null || t === null) return 0;
+    const cs = Math.max(f, monthStart);
+    const ce = Math.min(t, monthEnd);
+    return ce >= cs ? Math.round((ce - cs) / DAY_MS) + 1 : 0;
+  };
+
+  // Leaves overlapping the selected month, longest in-month leave first.
+  const filteredLeaves = leaves
+    .filter((l) => {
+      const f = toUTCDate(l.from_date);
+      const t = toUTCDate(l.to_date);
+      return f !== null && t !== null && f <= monthEnd && t >= monthStart;
+    })
+    .sort((a, b) =>
+      daysInSelectedMonth(b.from_date, b.to_date) - daysInSelectedMonth(a.from_date, a.to_date)
+    );
+
+  const totalLeaveDays = filteredLeaves.reduce(
+    (sum, l) => sum + daysInSelectedMonth(l.from_date, l.to_date), 0,
+  );
+  const employeesOnLeave = new Set(
+    filteredLeaves.map((l) => l.employee_code || l.employee_name),
+  ).size;
+
   const columns = [
     { key: 'employee_code', label: 'Code', render: (v) => <span className="text-secondary text-sm font-mono">{v || '—'}</span> },
     { key: 'employee_name', label: 'Employee', render: (v) => <span className="font-semibold">{v || '—'}</span> },
@@ -130,7 +182,26 @@ export default function LeaveManagement() {
           <h1 className="page-title">Leave Management</h1>
           <p className="page-subtitle">View and record employee leave applications</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3 items-center">
+          <select
+            className="form-select"
+            value={filterMonth}
+            onChange={(e) => setFilterMonth(Number(e.target.value))}
+            style={{ width: 120 }}
+          >
+            {MONTH_NAMES.map((name, i) => (
+              <option key={i} value={i + 1}>{name}</option>
+            ))}
+          </select>
+          <input
+            type="number"
+            className="form-input"
+            value={filterYear}
+            onChange={(e) => setFilterYear(Number(e.target.value))}
+            min="2020"
+            max="2099"
+            style={{ width: 90 }}
+          />
           <button className="btn btn-primary" onClick={openCreate}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -143,20 +214,14 @@ export default function LeaveManagement() {
       {/* Summary */}
       <div className="flex gap-4" style={{ marginBottom: 'var(--space-6)' }}>
         <div className="stat-card" style={{ flex: 1 }}>
-          <div className="stat-label">Total Leaves</div>
-          <div className="stat-value" style={{ fontSize: 'var(--text-3xl)' }}>{leaves.length}</div>
-          <div className="stat-sub">All recorded applications</div>
+          <div className="stat-label">Leave Days</div>
+          <div className="stat-value" style={{ fontSize: 'var(--text-3xl)', color: 'var(--accent)' }}>{totalLeaveDays}</div>
+          <div className="stat-sub">taken in {MONTH_NAMES[filterMonth - 1]} {filterYear}</div>
         </div>
         <div className="stat-card" style={{ flex: 1 }}>
-          <div className="stat-label">This Month</div>
-          <div className="stat-value" style={{ fontSize: 'var(--text-3xl)', color: 'var(--accent)' }}>
-            {leaves.filter((l) => {
-              const now = new Date();
-              const d = new Date(l.applied_at || l.created_at);
-              return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-            }).length}
-          </div>
-          <div className="stat-sub">Recorded this month</div>
+          <div className="stat-label">Employees on Leave</div>
+          <div className="stat-value" style={{ fontSize: 'var(--text-3xl)' }}>{employeesOnLeave}</div>
+          <div className="stat-sub">in {MONTH_NAMES[filterMonth - 1]} {filterYear}</div>
         </div>
       </div>
 
@@ -166,8 +231,8 @@ export default function LeaveManagement() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <DataTable
             columns={columns}
-            data={leaves}
-            emptyMessage="No leave records found. Record a leave to get started."
+            data={filteredLeaves}
+            emptyMessage={`No leaves in ${MONTH_NAMES[filterMonth - 1]} ${filterYear}.`}
           />
         </div>
       )}
