@@ -168,9 +168,12 @@ PAYROLL_RECORD_LIST = """
            pr.ot_hours, pr.undertime_hours,
            pr.gross, pr.jobber_allowance, pr.total_deductions, pr.net_pay, pr.payment_mode,
            pr.created_at, pr.updated_at,
-           e.name AS employee_name, e.employee_code
+           e.name AS employee_name, e.employee_code,
+           e.monthly_salary, e.per_day_salary,
+           c.pay_type
     FROM payroll_records pr
     JOIN employees e ON e.id = pr.employee_id
+    JOIN categories c ON c.id = e.category_id
     WHERE pr.period_id = $1 AND pr.org_id = $2
       AND ($3::uuid IS NULL OR e.category_id = $3)
       AND ($4::uuid IS NULL OR e.department_id = $4)
@@ -277,6 +280,7 @@ PAYROLL_SHEET_RECORDS = """
         e.per_day_salary,
         pr.daily_rate_applied,
         pr.days_present,
+        pr.ot_hours,
         pr.gross,
         pr.total_deductions,
         pr.net_pay,

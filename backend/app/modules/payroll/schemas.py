@@ -82,6 +82,11 @@ class PayrollRecordResponse(BaseModel):
     total_deductions: float
     net_pay: float
     payment_mode: str
+    # Used by the period view to split records into Labour vs Maintenance/Staff
+    # tabs (pay_type) and to show the monthly-salary columns on the Staff tab.
+    pay_type: Optional[str] = None
+    monthly_salary: Optional[float] = None
+    per_day_salary: Optional[float] = None
     created_at: datetime
     updated_at: datetime
 
@@ -111,9 +116,13 @@ class SalarySheetRow(BaseModel):
     employee_code: str
     employee_name: str
     gender: Optional[str] = None
+    # 'tier'/'daily_flat' = Labour group, 'monthly' = Maintenance/Staff. Frontend
+    # uses this to split the sheet into per-class tabs + separate Excel exports.
+    salary_type: Optional[str] = None
     monthly_salary: Optional[float] = None   # None for Labour/Trainee → frontend shows "—"
     per_day: Optional[float] = None
     days_present: float
+    ot_hours: float = 0
     gross: float
     basic: Optional[float] = None
     da: Optional[float] = None

@@ -316,6 +316,32 @@ TOTAL row sums all numeric columns. Gender counts (FEMALE / MALE / TOTAL) below 
 **Component names** (pulled from `payroll_component_values`, matched by `component_name`):
 `Basic`, `DA`, `T Basic`, `Allowances`, `EPF` — Labour rows will have no component rows, show `"-"` for those columns.
 
+### Update (2026-06-28) — class split (Labour vs Maintenance/Staff)
+
+Per owner: the **component breakdown sheet (Basic/DA/T Basic/Allowances/EPF) is the
+Labour / skilled-worker sheet**. Maintenance & Staff must be shown **separately**, with
+a monthly-salary layout (no component breakdown). Trainees + unskilled stay inside the
+Labour group. Class discriminator = `categories.pay_type` (`hours_based` →
+Maintenance/Staff, else Labour) / `sub_categories.salary_type` (`monthly` → Maint/Staff).
+
+Done:
+- **Period view** (`PeriodDetail.jsx`): class tabs **Labour · Maintenance & Staff · All**.
+  Per-tab columns, per-tab record-count badge, and the 3 summary cards recompute per tab
+  (middle card relabels EPF↔Deductions). "All" tab = shared columns only (Code · Employee ·
+  Class · Gross · Deductions · Net · Mode) for the grand total. Records endpoint now returns
+  `pay_type`, `monthly_salary`, `per_day_salary`.
+- **Salary Sheet** (`SalarySheet.jsx`): same Labour / Maintenance & Staff tabs. Export is
+  **per-class separate .xlsx** (Labour = full component layout; Staff = SALARY · PER DAY ·
+  DAYS · OT HRS · GROSS · DEDUCTIONS · NET). **No combined "All" Excel.** Sheet endpoint now
+  returns `salary_type` + `ot_hours`.
+
+⚠ Reconcile later: this section's earlier "Salary Structure (Maintenance + Staff)" block
+attributes Basic/DA/EPF to Maint+Staff, which reads opposite to the owner's framing above.
+In the **current** config Labour Skilled has `has_components=false` (EPF is a manual
+deduction), so Labour records carry no component rows today — the component columns populate
+only where the engine writes `payroll_component_values`. Verify against the engine before
+editing the business-rule block.
+
 ---
 
 ## Session Workflow

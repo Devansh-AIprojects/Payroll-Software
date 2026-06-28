@@ -11,9 +11,24 @@ const MONTH_NAMES = [
 ];
 
 const fmt = (num) => {
-  if (num == null) return '—';
+  if (num == null || num === '') return '—';
   return Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
+
+// pay_type 'hours_based' = Maintenance + Staff (monthly). Everything else
+// (tier_based: Skilled + Trainee) is Labour. This is the class split for the tabs.
+const isStaff = (r) => r.pay_type === 'hours_based';
+
+const modeCell = (val) => (
+  <span className={`badge ${val === 'bank' ? 'badge-approved' : 'badge-warning'}`}>{val}</span>
+);
+const netCell = (val) => <strong style={{ color: 'var(--success)' }}>{fmt(val)}</strong>;
+
+const TABS = [
+  { id: 'labour', label: 'Labour' },
+  { id: 'staff', label: 'Maintenance & Staff' },
+  { id: 'all', label: 'All' },
+];
 
 export default function PeriodDetail() {
   const { periodId } = useParams();
@@ -21,16 +36,15 @@ export default function PeriodDetail() {
 
   const [period, setPeriod] = useState(null);
   const [records, setRecords] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState('');
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [activeTab, setActiveTab] = useState('labour');
 
   useEffect(() => {
     loadAll();
-  }, [periodId, page]);
+  }, [periodId]);
 
   async function loadAll() {
     setLoading(true);
@@ -38,11 +52,12 @@ export default function PeriodDetail() {
     try {
       const [periodRes, recordsRes] = await Promise.all([
         api.get(`/payroll/periods/${periodId}`),
-        api.get(`/payroll/periods/${periodId}/records?page=${page}&page_size=50`),
+        // One mill's monthly payroll fits comfortably in a single page; fetch all
+        // so the class tabs can group/total client-side without pagination seams.
+        api.get(`/payroll/periods/${periodId}/records?page=1&page_size=200`),
       ]);
       setPeriod(periodRes.data);
       setRecords(recordsRes.data || []);
-      setTotal(recordsRes.total || 0);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -84,54 +99,40 @@ export default function PeriodDetail() {
     }
   }
 
-  const columns = [
+  // ── Column sets per class ──────────────────────────────────────────────────
+  const labourColumns = [
     { key: 'employee_code', label: 'Code' },
     { key: 'employee_name', label: 'Employee' },
-    {
-      key: 'daily_rate_applied',
-      label: 'Rate',
-      align: 'right',
-      render: (val) => val ? fmt(val) : '—',
-    },
-    {
-      key: 'days_present',
-      label: 'Days',
-      align: 'right',
-      render: (val) => val,
-    },
-    {
-      key: 'ot_hours',
-      label: 'OT Hrs',
-      align: 'right',
-      render: (val) => val > 0 ? val : '—',
-    },
-    {
-      key: 'gross',
-      label: 'Gross',
-      align: 'right',
-      render: (val) => fmt(val),
-    },
-    {
-      key: 'total_deductions',
-      label: 'EPF',
-      align: 'right',
-      render: (val) => fmt(val),
-    },
-    {
-      key: 'net_pay',
-      label: 'Net Pay',
-      align: 'right',
-      render: (val) => <strong style={{ color: 'var(--success)' }}>{fmt(val)}</strong>,
-    },
-    {
-      key: 'payment_mode',
-      label: 'Mode',
-      render: (val) => (
-        <span className={`badge ${val === 'bank' ? 'badge-approved' : 'badge-warning'}`}>
-          {val}
-        </span>
-      ),
-    },
+    { key: 'daily_rate_applied', label: 'Rate', align: 'right', render: (v) => (v ? fmt(v) : '—') },
+    { key: 'days_present', label: 'Days', align: 'right' },
+    { key: 'ot_hours', label: 'OT Hrs', align: 'right', render: (v) => (v > 0 ? v : '—') },
+    { key: 'gross', label: 'Gross', align: 'right', render: fmt },
+    { key: 'total_deductions', label: 'EPF', align: 'right', render: fmt },
+    { key: 'net_pay', label: 'Net Pay', align: 'right', render: netCell },
+    { key: 'payment_mode', label: 'Mode', render: modeCell },
+  ];
+
+  const staffColumns = [
+    { key: 'employee_code', label: 'Code' },
+    { key: 'employee_name', label: 'Employee' },
+    { key: 'monthly_salary', label: 'Salary', align: 'right', render: (v) => (v ? fmt(v) : '—') },
+    { key: 'per_day_salary', label: 'Per Day', align: 'right', render: (v) => (v ? fmt(v) : '—') },
+    { key: 'days_present', label: 'Days', align: 'right' },
+    { key: 'ot_hours', label: 'OT Hrs', align: 'right', render: (v) => (v > 0 ? v : '—') },
+    { key: 'gross', label: 'Gross', align: 'right', render: fmt },
+    { key: 'total_deductions', label: 'Deductions', align: 'right', render: fmt },
+    { key: 'net_pay', label: 'Net Pay', align: 'right', render: netCell },
+    { key: 'payment_mode', label: 'Mode', render: modeCell },
+  ];
+
+  const allColumns = [
+    { key: 'employee_code', label: 'Code' },
+    { key: 'employee_name', label: 'Employee' },
+    { key: 'pay_type', label: 'Class', render: (v) => (v === 'hours_based' ? 'Maint & Staff' : 'Labour') },
+    { key: 'gross', label: 'Gross', align: 'right', render: fmt },
+    { key: 'total_deductions', label: 'Deductions', align: 'right', render: fmt },
+    { key: 'net_pay', label: 'Net Pay', align: 'right', render: netCell },
+    { key: 'payment_mode', label: 'Mode', render: modeCell },
   ];
 
   if (loading) return <Spinner />;
@@ -144,23 +145,38 @@ export default function PeriodDetail() {
   const canApprove = period && period.status === 'processing';
   const canPay = period && period.status === 'approved';
 
-  // Compute totals
-  const totalGross = records.reduce((sum, r) => sum + (r.gross || 0), 0);
-  const totalDeductions = records.reduce((sum, r) => sum + (r.total_deductions || 0), 0);
-  const totalNet = records.reduce((sum, r) => sum + (r.net_pay || 0), 0);
-  const totalDays = records.reduce((sum, r) => sum + (r.days_present || 0), 0);
+  // ── Class grouping ─────────────────────────────────────────────────────────
+  const labourRecords = records.filter((r) => !isStaff(r));
+  const staffRecords = records.filter((r) => isStaff(r));
 
-  const summaryRow = records.length > 0 ? {
-    employee_code: '',
-    employee_name: 'TOTAL',
-    daily_rate_applied: '',
-    days_present: totalDays,
-    ot_hours: '',
-    gross: fmt(totalGross),
-    total_deductions: fmt(totalDeductions),
-    net_pay: fmt(totalNet),
-    payment_mode: '',
-  } : null;
+  const activeRecords =
+    activeTab === 'labour' ? labourRecords : activeTab === 'staff' ? staffRecords : records;
+  const activeColumns =
+    activeTab === 'labour' ? labourColumns : activeTab === 'staff' ? staffColumns : allColumns;
+
+  const tabCount = (id) =>
+    id === 'labour' ? labourRecords.length : id === 'staff' ? staffRecords.length : records.length;
+
+  // ── Totals for the active tab ──────────────────────────────────────────────
+  const totalGross = activeRecords.reduce((s, r) => s + (r.gross || 0), 0);
+  const totalDeductions = activeRecords.reduce((s, r) => s + (r.total_deductions || 0), 0);
+  const totalNet = activeRecords.reduce((s, r) => s + (r.net_pay || 0), 0);
+  const totalDays = activeRecords.reduce((s, r) => s + (r.days_present || 0), 0);
+
+  const deductionsLabel = activeTab === 'labour' ? 'Total EPF' : 'Total Deductions';
+
+  // summaryRow values are shown raw (DataTable does not re-apply render), so pre-format.
+  let summaryRow = null;
+  if (activeRecords.length > 0) {
+    const base = {
+      employee_name: 'TOTAL',
+      days_present: totalDays,
+      gross: fmt(totalGross),
+      total_deductions: fmt(totalDeductions),
+      net_pay: fmt(totalNet),
+    };
+    summaryRow = base;
+  }
 
   return (
     <div className="animate-in">
@@ -174,7 +190,7 @@ export default function PeriodDetail() {
             <h1 className="page-title">{periodLabel}</h1>
             {period && <StatusBadge status={period.status} />}
           </div>
-          <p className="page-subtitle" style={{ marginLeft: '72px' }}>{total} employee record(s)</p>
+          <p className="page-subtitle" style={{ marginLeft: '72px' }}>{records.length} employee record(s)</p>
         </div>
         <div className="page-actions">
           {period && (period.status === 'approved' || period.status === 'paid') && (
@@ -219,15 +235,37 @@ export default function PeriodDetail() {
       {error && <div className="alert alert-error" style={{ marginBottom: 'var(--space-4)' }}>{error}</div>}
       {successMsg && <div className="alert alert-success" style={{ marginBottom: 'var(--space-4)' }}>{successMsg}</div>}
 
-      {/* Summary Cards */}
+      {/* Class tabs */}
       {records.length > 0 && (
+        <div className="att-tab-bar" style={{ marginBottom: 'var(--space-5)' }}>
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              className={`att-tab ${activeTab === tab.id ? 'att-tab--active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+              <span className="badge" style={{
+                marginLeft: 'var(--space-2)',
+                background: 'rgba(255,255,255,0.06)',
+                color: 'var(--text-secondary)',
+              }}>
+                {tabCount(tab.id)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Summary Cards — scoped to the active tab */}
+      {activeRecords.length > 0 && (
         <div className="grid grid-3 gap-6" style={{ marginBottom: 'var(--space-6)' }}>
           <div className="stat-card">
             <div className="stat-label">Total Gross</div>
             <div className="stat-value" style={{ fontSize: 'var(--text-2xl)' }}>{fmt(totalGross)}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label">Total EPF</div>
+            <div className="stat-label">{deductionsLabel}</div>
             <div className="stat-value" style={{ fontSize: 'var(--text-2xl)', color: 'var(--error)' }}>{fmt(totalDeductions)}</div>
           </div>
           <div className="stat-card">
@@ -240,36 +278,17 @@ export default function PeriodDetail() {
       {/* Records Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <DataTable
-          columns={columns}
-          data={records}
+          columns={activeColumns}
+          data={activeRecords}
           onRowClick={(row) => navigate(`/payroll/periods/${periodId}/records/${row.employee_id}`)}
-          emptyMessage="No payroll records. Run the payroll engine to generate records."
+          emptyMessage={
+            records.length === 0
+              ? 'No payroll records. Run the payroll engine to generate records.'
+              : 'No employees in this class for this period.'
+          }
           summaryRow={summaryRow}
         />
       </div>
-
-      {/* Pagination */}
-      {total > 50 && (
-        <div className="flex justify-center gap-3" style={{ marginTop: 'var(--space-6)' }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Previous
-          </button>
-          <span className="text-secondary text-sm flex items-center">
-            Page {page} of {Math.ceil(total / 50)}
-          </span>
-          <button
-            className="btn btn-secondary btn-sm"
-            disabled={page * 50 >= total}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 }
