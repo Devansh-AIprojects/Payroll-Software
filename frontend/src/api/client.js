@@ -11,6 +11,19 @@ function getToken() {
   return localStorage.getItem('auth_token');
 }
 
+// On a 401 (missing / invalid / expired JWT) the session is dead. Clear it and
+// bounce to the login screen instead of letting every page render the raw
+// "Token invalid or expired" error. Login itself uses its own fetch (not this
+// client), so this never loops on a failed sign-in. 403 (valid token, no perm)
+// is deliberately NOT handled here — that is not a session problem.
+function handleUnauthorized() {
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('auth_user');
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+}
+
 async function request(path, options = {}) {
   const token = getToken();
   const headers = {
@@ -30,6 +43,14 @@ async function request(path, options = {}) {
   // Handle no-content responses (204)
   if (response.status === 204) {
     return null;
+  }
+
+  // Expired / invalid session → log out and redirect (no point parsing body)
+  if (response.status === 401) {
+    handleUnauthorized();
+    const error = new Error('Session expired. Please sign in again.');
+    error.status = 401;
+    throw error;
   }
 
   const data = await response.json();
@@ -69,6 +90,12 @@ async function rawRequest(path, options = {}) {
 
   const response = await fetch(path, { ...options, headers });
   if (response.status === 204) return null;
+  if (response.status === 401) {
+    handleUnauthorized();
+    const error = new Error('Session expired. Please sign in again.');
+    error.status = 401;
+    throw error;
+  }
   const data = await response.json();
   if (!response.ok) {
     const message = data.detail || data.message || `Request failed (${response.status})`;

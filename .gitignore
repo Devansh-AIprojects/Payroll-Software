@@ -42,6 +42,11 @@ Thumbs.db
 KNOWN_ISSUES.md
 FIX_VERCEL_REWRITES.md
 CHAT_NOTES_vercel_rewrites.md
+STAFF_GUIDE.html
+PAYROLL_GUIDE.html
+task.md
+mcp.md
+implementation_plan_manualsalary
 
 # Local dev/one-off scripts — not part of the app, not deployed.
 backend/cleanup.py

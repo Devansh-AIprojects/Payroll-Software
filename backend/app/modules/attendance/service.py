@@ -331,10 +331,16 @@ async def process_daily_attendance(
             duration_hours = Decimal(str(emp["duration_hours"]))
             standard_hours = Decimal(str(emp["standard_hours"]))
             pay_type = emp["pay_type"]
+            # Night-shift attribution: a midnight-start shift's punches occur on
+            # the NEXT calendar morning but belong to THIS attendance-day. Offset
+            # shifts only the punch-search window forward; the record is still
+            # written against current_date below. 0 for all normal shifts. (mig 018)
+            window_day_offset = emp["punch_window_day_offset"] or 0
+            window_date = current_date + timedelta(days=window_day_offset)
 
             # 1. Compute shift window
             window_start, window_end = _compute_shift_window(
-                shift_start, shift_end, crosses_midnight, current_date,
+                shift_start, shift_end, crosses_midnight, window_date,
             )
 
             # 2. Pull matched logs within window

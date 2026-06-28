@@ -75,7 +75,7 @@ ACTIVE_EMPLOYEES_WITH_SHIFT = """
     SELECT e.id, e.org_id, e.employee_code, e.name,
            e.shift_id, e.category_id, e.sub_category_id, e.department_id,
            s.start_time, s.end_time, s.duration_hours, s.standard_hours,
-           s.crosses_midnight, s.name AS shift_name,
+           s.crosses_midnight, s.punch_window_day_offset, s.name AS shift_name,
            c.pay_type
     FROM employees e
     JOIN shifts s ON s.id = e.shift_id

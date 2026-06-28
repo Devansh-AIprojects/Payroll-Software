@@ -104,8 +104,8 @@ import { raw } from '../api/client';  // named export  — /attendance + /device
 
 ## Database
 
-### Migration state: 001–017 all applied
-No migration tracking table — applied manually. Next to write: `018_*.sql`.
+### Migration state: 001–018 all applied
+No migration tracking table — applied manually. Next to write: `019_*.sql`.
 
 | Migration | File | Change |
 |---|---|---|
@@ -115,6 +115,7 @@ No migration tracking table — applied manually. Next to write: `018_*.sql`.
 | 015 | `015_payroll_jobber.sql` | Add `jobber_allowance NUMERIC(10,2) NOT NULL DEFAULT 0` to `payroll_records` |
 | 016 | `016_overtime_status.sql` | Attendance status model: drop `holiday`, add `overtime`; tighten `attendance_daily_status_check` |
 | 017 | `017_lock_supabase_roles.sql` | REVOKE all table/sequence/function privs from `anon` + `authenticated` (kills Supabase REST API surface). Backend connects as `postgres`, unaffected. |
+| 018 | `018_shift_punch_window_offset.sql` | Add `punch_window_day_offset SMALLINT NOT NULL DEFAULT 0` to `shifts`. Set `1` on the midnight-start "Night 8hr (12am-8am)" shift so its next-morning punches attribute to the prior attendance-day. Engine reads it in `process_daily_attendance`. |
 
 ### Tables (18 total)
 `organisations`, `users`, `shifts`, `categories`, `sub_categories`, `departments`, `salary_components`, `labour_tier_rates`, `employees`, `employee_fingerprints`, `devices`, `attendance_logs`, `attendance_daily`, `leave_applications`, `payroll_periods`, `payroll_records`, `payroll_component_values`, `payroll_deductions`
